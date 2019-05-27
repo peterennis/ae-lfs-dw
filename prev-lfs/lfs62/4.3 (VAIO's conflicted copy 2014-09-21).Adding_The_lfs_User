@@ -1,0 +1,84 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+cd ${LFS}/lfs-scripts
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> ${LFS}/lfs-logs/logSBU
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ As root, issue the following commands to add the new user:
+echo =ae{ \(login shell used to find groupadd command\)
+echo =ae{ "        "sudo su -
+echo =ae{ "        "groupadd lfs
+echo =ae{ "        "useradd -s /bin/bash -g lfs -m -k /dev/null lfs
+echo =ae{ Give lfs a password:
+echo =ae{ "        "passwd lfs
+echo =ae{ Make sure \${LFS} variable is set in the root shell:
+echo =ae{ "        "echo \${LFS}
+echo =ae{ "        "sudo export LFS=/mnt/lfs
+echo =ae{ Grant lfs full access to \${LFS}/tools by making lfs the directory owner:
+echo =ae{ "        "sudo chown -v lfs \${LFS}/tools
+echo =ae{ Give user lfs ownership of the directories:
+echo =ae{ "        "sudo chown -v lfs \${LFS}/sources
+echo =ae{ "        "sudo chown -v lfs \${LFS}/lfs-logs
+echo =ae{ "        "sudo chown -v lfs \${LFS}/lfs-scripts
+echo =ae{ Login as user lfs with login shell
+echo =ae{ "        "sudo su - lfs
+echo =ae{ "        "pwd
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+echo "=> "${0}" "`exec env`
+LFS=/mnt/lfs
+export LFS
+echo "=> \${LFS}="${LFS}
+
+GROUP=lfs
+USER=lfs
+
+# Check if named group exists
+if [[ -z "`grep ${GROUP} /etc/group`" ]] ; then
+	#echo "Creating group ${GROUP}:"
+	sudo /usr/sbin/groupadd ${GROUP}
+else
+	echo "WARNING: Group ${GROUP} already exists."
+fi
+
+# Check if user exists
+if [[ -z "`grep ${USER} /etc/passwd`" ]] ; then
+	#echo "Creating user ${USER}:"
+	sudo /usr/sbin/useradd -s /bin/bash -g lfs -m -k /dev/null ${USER}
+	sudo passwd ${USER}
+else
+	echo "WARNING: User  ${USER} already exists."
+fi
+
+sudo chown -v lfs ${LFS}/tools
+echo "    " completed: sudo chown lfs \${LFS}/tools
+sudo chown -v lfs ${LFS}/sources
+echo "    " completed: sudo chown lfs \${LFS}/sources
+sudo chown -v lfs ${LFS}/lfs-logs
+echo "    " completed: sudo chown lfs \${LFS}/lfs-logs
+sudo chown -v lfs ${LFS}/lfs-scripts
+echo "    " completed: sudo chown lfs \${LFS}/lfs-scripts
+echo
+
+if [[ "${USER}" == "lfs" ]] ; then
+	echo "Logged in as lfs"
+else
+	echo "=>???DONE "${0}" - Changing to lfs user"
+	echo
+	sudo su - lfs
+fi
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> ${LFS}/lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

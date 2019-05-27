@@ -1,0 +1,55 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+cd /sources
+echo "=> pwd="`pwd`
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> /lfs-logs/logSBU
+
+# Set a variable for the package name
+PkgName=db-4.4.20
+PkgType=gz
+echo ${PkgName}" "${PkgType}
+
+# unpack
+if [[ "${PkgType}" == "gz" ]] ; then
+        gzip -cd ${PkgName}.tar.gz | tar xvf -
+elif [[ "${PkgType}" == "bz2" ]] ; then
+	bzip2 -cd ${PkgName}.tar.bz2 | tar xvf -
+fi
+
+# Configure and install
+cd ${PkgName}
+echo "=> pwd="`pwd`
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+patch -Np1 -i ../${PkgName}-fixes-1.patch
+cd build_unix &&
+../dist/configure --prefix=/usr --enable-compat185 --enable-cxx
+echo "=> pwd="`pwd`
+make
+make docdir=/usr/share/doc/${PkgName} install
+chown -v root:root /usr/bin/db_* \
+    /usr/lib/libdb* /usr/include/db* &&
+chown -Rv root:root /usr/share/doc/${PkgName}
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+
+# Remove the extracted source files and the compile directory
+echo
+cd /sources
+echo "=> pwd="`pwd`
+rm -rf ${PkgName}
+echo "=> Removed directory "${PkgName}
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${{DateAndTime}" "${0}" End $(pwd)" >> /lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

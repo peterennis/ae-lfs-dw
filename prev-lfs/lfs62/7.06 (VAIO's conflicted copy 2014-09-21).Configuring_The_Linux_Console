@@ -1,0 +1,37 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source /lfs-scripts/aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd) - OFF" >> /lfs-logs/logSBU
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ This section is skipped as we use a US Keyboard.
+echo =ae{ The code shows an example. Refer to the book for details.
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+echo "=> # The following example adds the Euro symbol to the German keymap:
+echo "=> # 
+echo "=> #	cat > /etc/sysconfig/console << "EOF"
+echo "=> #	# Begin /etc/sysconfig/console
+echo "=> #	
+echo "=> #	KEYMAP="de-latin1"
+echo "=> #	KEYMAP_CORRECTIONS="euro2"
+echo "=> #	FONT="lat0-16 -m 8859-15"
+echo "=> #	
+echo "=> #	# End /etc/sysconfig/console
+echo "=> #	EOF
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> /lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

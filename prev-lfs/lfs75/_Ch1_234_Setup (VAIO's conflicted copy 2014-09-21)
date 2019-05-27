@@ -1,0 +1,74 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+LFSVER=lfs75
+
+source ~+/SCRIPT_LIBRARY
+
+echo ${YELLOW}"=> \$LFSVER="${LFSVER}${OFF}
+
+set +x
+# Print green 80 character console line separator with _
+# Ref: http://stackoverflow.com/questions/5799303/print-a-character-repeatedly-in-bash
+echo ${GREEN}
+printf "%0.s_" {1..80}
+echo ${OFF}
+set -x
+
+# Output the script echo messages in yellow
+echo ${YELLOW}"=> "${0}${OFF}
+DateAndTime=$(date +%Y_%m_%d_%T)
+# NOTE: Use logSBU.start
+echo ${YELLOW}"=> "${OFF}
+echo ${DateAndTime}" "${0}" Start $(PWD)" >> ~+/logSBU.start
+echo
+
+if [ ${#} -eq 2 ] ; then
+        echo ${YELLOW}"=> The command line contains $# arguments"${OFF}
+else
+        echo ${YELLOW}"=> "$(Usage /dev/\<xxx\> 1\|2)${OFF}
+        exit 1
+fi
+
+echo ${YELLOW}"=> "${0}"    "${1}"    "${2}${OFF}
+if [ ${2} -ne 1 ] && [ ${2} -ne 2 ] ; then
+        echo ${YELLOW}"=> The second parameter indicates 1 or 2 pass compiling."${OFF}
+        echo ${YELLOW}"=> Use 1 or 2."${OFF}
+        exit 1
+fi
+
+set +x
+# Create green header for descriptive information - turn off debugging with set +x
+# Ref: http://www.commandlinefu.com/commands/view/1210/runs-a-bash-script-in-debugging-mode#comment
+echo ${GREEN}
+printf "%0.s_" {1..80}
+echo " Chapters 1-5 Pre-Build"
+echo " The \${LFS} variable must be exported to be visible in the subshells"
+printf "%0.s_" {1..80}
+echo ${OFF}
+set -x # Turn on debugging
+
+LFS=/mnt/lfs
+export LFS
+echo ${YELLOW}"=> \$LFS="${LFS}${OFF}
+
+exit $?
+
+./2.3.0.Creating_A_File_System_On_The_Partition ${1} ${2}
+./2.3.ae1.CREATE_LFS_FILE_SYSTEM ${1} ${2}
+./2.4.Mounting_The_New_Partition ${1} ${2}
+./3.1.0.Packages_And_Patches_Introduction
+./3.1.ae1.CREATE_ADDITIONAL_LFS_DIRECTORIES
+# NOTE: Start logging here
+./3.1.ae2.COPY_SOURCES_PATCHES_SCRIPTS > ${LFS}/lfs-logs/3.1.ae2.COPY_SOURCES_PATCHES_SCRIPTS.log 2>&1
+./4.1.About_LFS > ${LFS}/lfs-logs/4.1.About_LFS.log 2>&1
+./4.2.Creating_The_LFS_tools_Directory > ${LFS}/lfs-logs/4.2.Creating_The_LFS_tools_Directory.log 2>&1
+./4.3.Adding_The_lfs_User > ${LFS}/lfs-logs/4.3.Adding_The_lfs_User.log 2>&1
+./4.4.0.Setting_Up_The_Environment > ${LFS}/lfs-logs/4.4.0.Setting_Up_The_Environment.log 2>&1
+./4.4.ae1.SOURCE_THE_.bash_profile > ${LFS}/lfs-logs/4.4.ae1.SOURCE_THE_.bash_profile.log 2>&1
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${YELLOW}${DateAndTime}" "${0}" End $(pwd)" >> ${LFS}/lfs-logs/logSBU${BLACK}
+echo ${YELLOW}"=>DONE "${0}${BLACK}
+echo

@@ -1,0 +1,51 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+cd ${LFS}/lfs-scripts
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> ${LFS}/lfs-logs/logSBU
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ While logged in as user lfs, issue the following command
+echo =ae{ to create a new .bash_profile:
+echo =ae{ "        "cat \> \~/.bash_profile \<\< \"EOF\"
+echo =ae{ "        "exec env -i HOME=\${HOME} TERM=\${TERM} PS1=\'\\u:\\w\\\$ \' /bin/bash
+echo =ae{ "        "EOF
+echo =ae{ Create non-login shell .bashrc file:
+echo =ae{ "        "cat \> \~/.bashrc \<\< \"EOF\"
+echo =ae{ "        "set +h
+echo =ae{ "        "umask 022
+echo =ae{ "        "LFS=/mnt/lfs
+echo =ae{ "        "LC_ALL=POSIX
+echo =ae{ "        "PATH=/tools/bin:/bin:/usr/bin
+echo =ae{ "        "export LFS LC_ALL PATH
+echo =ae{ "        "EOF
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+echo "=> "${0}" "`exec env`
+cat > ~/.bash_profile << "EOF"
+exec env -i HOME=${HOME} TERM=${TERM} PS1='\u:\w\$ ' /bin/bash
+EOF
+echo "=> "completed: .bash_profile
+cat > ~/.bashrc << "EOF"
+set +h
+umask 022
+LFS=/mnt/lfs
+LC_ALL=POSIX
+PATH=/tools/bin:/bin:/usr/bin
+export LFS LC_ALL PATH
+EOF
+echo "=> "completed: .bashrc
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> ${LFS}/lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

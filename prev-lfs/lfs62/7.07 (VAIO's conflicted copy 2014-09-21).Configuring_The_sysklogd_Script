@@ -1,0 +1,29 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source /lfs-scripts/aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> /lfs-logs/logSBU
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ The sysklogd script invokes the syslogd program with the -m 0 option.
+echo =ae{ This option turns off the periodic timestamp mark that syslogd writes to 
+echo =ae{ the log files every 20 minutes by default. If you want to turn on this
+echo =ae{ periodic timestamp mark, edit the sysklogd script and make the changes
+echo =ae{ accordingly. See man syslogd for more information.
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> /lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

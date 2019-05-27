@@ -1,0 +1,102 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+cd /sources
+echo "=> pwd="`pwd`
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> /lfs-logs/logSBU
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ PTYs are most commonly implemented via the devpts file system.
+echo =ae{ Check to see if the host system is set up correctly in this regard by
+echo =ae{ performing a quick test:
+echo =ae{ "        "expect -c "spawn ls"
+echo =ae{ The response might be:
+echo =ae{ "        "The system has no more ptys.
+echo =ae{ "        "Ask your system administrator to create more.
+echo =ae{ If the above message is seen, the host does not have PTYs set up properly.
+echo =ae{ There is no point in running the test suites for GCC and Binutils until
+echo =ae{ this issue is resolved. Please consult the LFS FAQ at:
+echo =ae{ "        "http://www.linuxfromscratch.org/lfs/faq.html#no-ptys
+echo =ae{ for more information on how to get PTYs working.
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+expect -c "spawn ls"
+
+# Set a variable for the package name
+PkgName=binutils-2.16.1
+PkgType=bz2
+echo ${PkgName}" "${PkgType}
+
+# unpack
+if [[ "${PkgType}" == "gz" ]] ; then
+	gunzip ${PkgName}.tar.gz
+	tar -xvf ${PkgName}.tar
+elif [[ "${PkgType}" == "bz2" ]] ; then
+	bzip2 -cd ${PkgName}.tar.bz2 | tar xvf -
+fi
+
+# Configure and install
+cd ${PkgName}
+echo "=> pwd="`pwd`
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+mkdir -pv ../binutils-build
+cd ../binutils-build
+echo "=> pwd="`pwd`
+../${PkgName}/configure --prefix=/usr \
+    --enable-shared
+make tooldir=/usr
+make -i -k check 2>&1 | tee binutils-check-log
+cp binutils-check-log /lfs-logs
+
+# Check for ERROR:
+echo "=> Debug 1"
+ls -l binutils-check-log
+echo "=> "`whoami`
+set +e
+# NOTE: Both the errorcount test examples work. When there is
+# no errorcount this test causes a basic error in the script
+# so error checking is turned off here using set +e and set -e
+#errorcount="$(grep -c 'ERROR:' /lfs-logs/binutils-check-log)"
+errorcount=`grep -c "ERROR:" /lfs-logs/binutils-check-log`
+set -e
+echo "=> Debug 2"
+if [[ "${errorcount}" -eq 0 ]] ; then
+	echo "=> Debug 3"
+        echo "=> \${errorcount}="${errorcount}
+else
+	echo "=> Debug 4"
+        echo "=> \${errorcount}="${errorcount}" counts of ERROR:"
+	DateAndTime=$(date +%Y_%m_%d_%T)
+	echo ${DateAndTime}" "${0}" End $(pwd) "${errorcount}" counts of ERROR:" >> /lfs-logs/logSBU
+	echo "=>DONE "${0}
+	exit 1
+fi
+
+echo "=> Debug 5"
+make tooldir=/usr install
+cp -v ../binutils-2.16.1/include/libiberty.h /usr/include
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+
+# Remove the extracted source files and the compile directory
+echo
+cd /sources
+echo "=> pwd="`pwd`
+rm -rf ${PkgName}
+echo "=> Removed directory "${PkgName}
+rm -rf binutils-build
+echo "=> Removed directory binutils-build"
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> /lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

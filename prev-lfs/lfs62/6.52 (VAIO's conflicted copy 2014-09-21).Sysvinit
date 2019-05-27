@@ -1,0 +1,79 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+cd /sources
+echo "=> pwd="`pwd`
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> /lfs-logs/logSBU
+
+# Set variables for the package name and type
+PkgName=sysvinit-2.86
+PkgType=gz
+echo ${PkgName}" "${PkgType}
+
+# unpack
+if [[ "${PkgType}" == "gz" ]] ; then
+        gzip -cd ${PkgName}.tar.gz | tar xvf -
+elif [[ "${PkgType}" == "bz2" ]] ; then
+	bzip2 -cd ${PkgName}.tar.bz2 | tar xvf -
+fi
+
+# Configure and install
+cd ${PkgName}
+echo "=> pwd="`pwd`
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+sed -i 's@Sending processes@& started by init@g' \
+    src/init.c
+make -C src
+# This package does not come with a test suite
+make -C src install
+cat > /etc/inittab << "EOF"
+# Begin /etc/inittab
+
+id:3:initdefault:
+
+si::sysinit:/etc/rc.d/init.d/rc sysinit
+
+l0:0:wait:/etc/rc.d/init.d/rc 0
+l1:S1:wait:/etc/rc.d/init.d/rc 1
+l2:2:wait:/etc/rc.d/init.d/rc 2
+l3:3:wait:/etc/rc.d/init.d/rc 3
+l4:4:wait:/etc/rc.d/init.d/rc 4
+l5:5:wait:/etc/rc.d/init.d/rc 5
+l6:6:wait:/etc/rc.d/init.d/rc 6
+
+ca:12345:ctrlaltdel:/sbin/shutdown -t1 -a -r now
+
+su:S016:once:/sbin/sulogin
+
+1:2345:respawn:/sbin/agetty tty1 9600
+2:2345:respawn:/sbin/agetty tty2 9600
+3:2345:respawn:/sbin/agetty tty3 9600
+4:2345:respawn:/sbin/agetty tty4 9600
+5:2345:respawn:/sbin/agetty tty5 9600
+6:2345:respawn:/sbin/agetty tty6 9600
+
+# End /etc/inittab
+EOF
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+
+# Remove the extracted source files and the compile directory
+echo
+cd /sources
+echo "=> pwd="`pwd`
+rm -rf ${PkgName}
+echo "=> Removed directory "${PkgName}
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> /lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

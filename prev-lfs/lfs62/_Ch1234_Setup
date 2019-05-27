@@ -1,0 +1,54 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source ~/lfs-scripts/aeSCRIPT_LIBRARY
+
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+# NOTE: Use logSBU.start
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> ~/lfs-scripts/logSBU.start
+
+
+if [[ ${#} -eq 2 ]] ; then
+        echo "The command line contains $# arguments"
+else
+        echo $(Usage /dev/\<xxx\> 1\|2)
+        exit 1
+fi
+
+echo "=> "${0}"    "${1}"    "${2}
+if [[ ${2} -ne 1 ]] && [[ ${2} -ne 2 ]] ; then
+        echo "=> The second parameter indicates 1 or 2 pass compiling."
+        echo "=> Use 1 or 2."
+        exit 1
+fi
+
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ Chapters 1-5 Pre-Build
+echo =ae{ The \${LFS} variable must be exported to be visible to the subshells
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+LFS=/mnt/lfs
+export LFS
+echo "=> \$LFS="${LFS}
+
+./2.3.0.Creating_A_File_System_On_The_Partition ${1} ${2}
+./2.3.ae1.CREATE_LFS_FILE_SYSTEM ${1} ${2}
+./2.4.Mounting_The_New_Partition ${1} ${2}
+./3.1.0.Packages_And_Patches_Introduction
+./3.1.ae1.CREATE_ADDITIONAL_LFS_DIRECTORIES
+# NOTE: Start logging here
+./3.1.ae2.COPY_SOURCES_PATCHES_SCRIPTS > ${LFS}/lfs-logs/3.1.ae2.COPY_SOURCES_PATCHES_SCRIPTS.log 2>&1
+./4.1.About_LFS > ${LFS}/lfs-logs/4.1.About_LFS.log 2>&1
+./4.2.Creating_The_LFS_tools_Directory > ${LFS}/lfs-logs/4.2.Creating_The_LFS_tools_Directory.log 2>&1
+./4.3.Adding_The_lfs_User > ${LFS}/lfs-logs/4.3.Adding_The_lfs_User.log 2>&1
+./4.4.0.Setting_Up_The_Environment > ${LFS}/lfs-logs/4.4.0.Setting_Up_The_Environment.log 2>&1
+./4.4.ae1.SOURCE_THE_.bash_profile > ${LFS}/lfs-logs/4.4.ae1.SOURCE_THE_.bash_profile.log 2>&1
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> ${LFS}/lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

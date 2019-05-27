@@ -1,0 +1,49 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+cd ${LFS}/lfs-scripts
+echo "=> pwd="`pwd`
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd) - OFF" >> ${LFS}/lfs-logs/logSBU
+
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ NOTE: THIS SECTION DOES NOT WORK WELL IN SCRIPTING SO LEAVE IT OUT OF CH5
+echo =ae{ "        "strip --strip-debug /tools/lib/\*
+echo =ae{ "        "strip --strip-unneeded /tools/\{,s\}bin/\*
+echo =ae{ The last of the above commands will skip some twenty files, reporting 
+echo =ae{ that it does not recognize their file format.
+echo =ae{ Most of these are scripts instead of binaries.
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+# NOTE: THIS IS NOT GOOD - SOME AUTOMATION NEEDED TO GENERATE AN EXACT LIST
+#       OF FILES TO BE STRIPPED
+#echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+#echo =ae{ Create the file list for the strip commands
+#echo =ae{ The file list is obtained using ls -LXF
+#echo =ae{ Do not strip the directory \(shown by /\)
+#echo =ae{ Do not strip shell scripts \(shown by .sh\)
+#echo =ae{ Executables are shown by \*
+#echo =ae{ Regular files have no special indicator
+#echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+#echo
+
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+#strip --strip-debug /tools/lib/*
+#strip --strip-unneeded /tools/{,s}bin/*
+#rm -rf /tools/{info,man}
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> ${LFS}/lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

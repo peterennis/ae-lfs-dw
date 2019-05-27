@@ -1,0 +1,44 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source /lfs-scripts/aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd) - OFF" >> /lfs-logs/logSBU
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ See info bash under the Bash Startup Files and Interactive Shells section.
+echo =ae{ The files /etc/profile and ~/.bash_profile are read when the shell is 
+echo =ae{ invoked as an interactive login shell.
+echo =ae{ The base /etc/profile sets some environment variables necessary
+echo =ae{ for native language support.
+echo =ae{ The list of all locales supported by Glibc can be obtained by running:
+echo =ae{ "        "locale -a
+echo =ae{ To determine the canonical name, run the following command:
+echo =ae{ "        "LC_ALL=\<locale name\> locale charmap
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+# Once the proper locale settings have been determined, create the /etc/profile file:
+# NOTE: Commands commented out as we use the default US setup.
+cat > /etc/profile << "EOF"
+# Begin /etc/profile
+
+#export LANG=<ll>_<CC>.<charmap><@modifiers>
+#export INPUTRC=/etc/inputrc
+
+# End /etc/profile
+EOF
+cat /etc/profile
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> /lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

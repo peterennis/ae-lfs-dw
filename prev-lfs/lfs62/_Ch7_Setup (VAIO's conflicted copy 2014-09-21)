@@ -1,0 +1,55 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source ~/lfs-scripts/aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo "=>A: \${0}="${0}"    \${1}="${1}"    \${2}="${2}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> ${LFS}/lfs-logs/logSBU
+
+
+if [[ ${#} -eq 2 ]] ; then
+        echo "The command line contains $# arguments"
+else
+        echo $(Usage /dev/\<xxx\> 1\|2)
+        exit 1
+fi
+
+echo "=> "${0}"    "${1}"    "${2}
+if [[ ${2} -ne 1 ]] && [[ ${2} -ne 2 ]] ; then
+        echo "=> The second parameter indicates 1 or 2 pass compiling."
+        echo "=> Use 1 or 2."
+        exit 1
+fi
+
+PartitionName=${1}                # fc4 adaept /dev/hdc1
+                                  # fc5 www.adaept.com /dev/hdb1
+
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ Chapter 7 Setup
+echo =ae{ The \${LFS} variable must be exported to be visible to the subshells
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+LFS=/mnt/lfs
+export LFS
+echo "=> \${LFS}="${LFS}
+
+# Make sure root owns all the files in /tools
+./5.32.Changing_Ownership > ${LFS}/lfs-logs/5.32.Changing_Ownership.log 2>&1
+./6.02.Preparing_Virtual_Kernel_File_Systems ${1} ${2} > ${LFS}/lfs-logs/6.02.Preparing_Virtual_Kernel_File_Systems.log 2>&1
+echo
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ Now run _Ch7_Build in 6.60.Cleaning_Up
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+./6.60.Cleaning_Up ${1} ${2} ./lfs-scripts/_Ch7_Build
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> ${LFS}/lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

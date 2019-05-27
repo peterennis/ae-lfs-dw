@@ -1,0 +1,48 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+echo 'main(){}' > dummy.c
+cc dummy.c
+readelf -l a.out | grep ': /tools'
+
+echo
+echo "=> Test for correct toolchain readjustment"
+echo "echo 'main(){}' > dummy.c"
+echo "cc dummy.c"
+echo "readelf -l a.out | grep ': /tools'"
+programinterpreter=$(readelf -l a.out | grep ': /tools')
+echo "programinterpreter=\$(readelf -l a.out | grep ': /tools')"
+echo "=> \${programinterpreter}="${programinterpreter}
+if echo "${programinterpreter}" | grep -q "[Requesting program interpreter: /tools/lib/ld-linux.so.2]" ; then
+        echo "=> ${programinterpreter} - FOUND"
+else
+        echo "=> ${programinterpreter} - NOT FOUND - ERROR!"
+        exit 1
+fi
+
+echo
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ CAUTION
+echo =ae{ If everything is working correctly, there should be no errors,
+echo =ae{ and the output of the last command will be of the form:
+echo =ae{ "        [Requesting program interpreter: /tools/lib/ld-linux.so.2]"
+echo =ae{ Note that /tools/lib appears as the prefix of the dynamic linker.
+echo =ae{ If the output is not shown as above or there was no output at all,
+echo =ae{ then something is wrong.
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+rm -v dummy.c a.out
+
+echo
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ This is a reliable test to see what ld \(the dynamic loader from binutils
+echo =ae{ as opposed to the dynamic linker from glibc, ld-linux.so.2\) is doing.
+echo =ae{ "        "\`\$\(gcc -print-prog-name=ld\) --verbose \| grep 'SEARCH'\`
+echo =ae{ and it should show output limilar to the following:
+echo =ae{ "        "SEARCH_DIR\(\"/tools/i686-pc-linux-gnu/lib\"\)\;" "SEARCH_DIR\(\"/tools/lib\"\)\;
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+echo `$(gcc -print-prog-name=ld) --verbose | grep SEARCH`
+echo "=>DONE "${0}
+echo

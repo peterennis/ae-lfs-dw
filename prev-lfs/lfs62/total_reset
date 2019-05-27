@@ -1,0 +1,65 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+# NOTE: No set -x here
+set -e -u
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+
+if [[ ${#} -eq 1 ]] ; then
+        echo "The command line contains $# argument"
+else
+        echo $(Usage /dev/\<xxx\>)
+        exit 1
+fi
+
+echo "=> Testing for \${LFS}/lfs-logs"
+lfslogsdir="${LFS}/lfs-logs"
+if [[ -d ${lfslogsdir} ]] ; then
+        echo "=> The directory "${lfslogsdir}" exists."
+	echo
+else
+        echo "=> The directory "${lfslogsdir}" does not exist."
+        echo "=> WARNING! This may not be the lfs partition"
+	exit 1
+fi
+
+# Ref: http://www.tldp.org/LDP/abs/html/internal.html#READNOVAR
+# Read a keypress without hitting ENTER.
+
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=   
+echo =ae{ WARNING! This command will totally reset the lfs system.
+echo =ae{ The partition ${1} will be reformatted and all files deleted.
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=   
+echo
+
+read -s -n3 -p "To continue type 'yes': " answer
+
+# -s option means do not echo input.
+# -n N option means accept only N characters of input.
+# -p option means echo the following prompt before reading input.
+
+# Using these options is tricky, since they need to be in the correct order.
+
+if [[ "${answer}" == "yes" ]] ; then
+	echo; echo "Answer was "\"${answer}\""."
+	echo "=> Continuing 1..."
+	echo "=> If error output similar to the following occurs then check that"
+	echo "=> there is no login to \${LFS} in another terminal and repeat the script."
+	echo "=>        mke2fs 1.38 (30-Jun-2005)"
+	echo "=>        /dev/hdb1 is apparently in use by the system; will not make a filesystem here!"
+	echo "=>        ./total_reset ERROR: basic error trapped!"
+	echo
+else
+	echo; echo "Answer was "\"${answer}\""."
+	echo
+	exit 1
+fi
+
+sudo umount -flv /dev/hdb1
+sudo /sbin/mke2fs -jv /dev/hdb1
+df -h

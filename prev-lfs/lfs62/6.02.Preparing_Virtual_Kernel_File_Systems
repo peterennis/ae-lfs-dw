@@ -1,0 +1,191 @@
+#!/tools/bin/bash
+# The proper way to start a bash script
+
+# Ref: http://www.davidpashley.com/articles/writing-robust-shell-scripts.html
+
+cd ${LFS}/lfs-scripts
+echo "=> pwd="`pwd`
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> ${LFS}/lfs-logs/logSBU
+
+if [[ ${#} -eq 2 ]] ; then
+        echo "The command line contains ${#} arguments"
+else
+        echo $(Usage /dev/\<xxx\> 1\|2)
+        exit 1
+fi
+
+echo "=> "${0}"    "${1}"    "${2}
+if [[ ${2} -ne 1 ]] && [[ ${2} -ne 2 ]] ; then
+        echo "=> The second parameter indicates 1 or 2 pass compiling."
+        echo "=> Use 1 or 2."
+        exit 1
+fi
+
+PartitionName=${1}                # fc4 adaept /dev/hdc1
+                                  # fc5 www.adaept.com /dev/hdb1
+
+#echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+#echo =ae{ Create directories onto which the file systems will be mounted:
+#echo =ae{ "        "mkdir -pv \${LFS}/{dev,proc,sys}
+#echo =ae{ Create Initial Device Nodes
+#echo =ae{ "        "mknod -m 600 \${LFS}/dev/console c 5 1
+#echo =ae{ "        "mknod -m 666 \${LFS}/dev/null c 1 3
+#echo =ae{ Mount and Populate /dev
+#echo =ae{ "        "mount --bind /dev \${LFS}/dev
+#echo =ae{ Mount Virtual Kernel File Systems
+#echo =ae{ "        "mount -vt devpts devpts \${LFS}/dev/pts
+#echo =ae{ "        "mount -vt tmpfs shm \${LFS}/dev/shm
+#echo =ae{ "        "mount -vt proc proc \${LFS}/proc
+#echo =ae{ "        "mount -vt sysfs sysfs \${LFS}/sys
+#echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+#echo
+
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+# Make sure to umount filesystems - they will be tested for
+# later and mounted as needed
+# Ignore any errors so the script does not break - reset after umount commands
+set +e
+sudo umount ${LFS}/dev/{shm,pts}
+sudo umount ${LFS}/{dev,proc,sys}
+set -e
+#
+# Ref: http://linuxfromscratch.org/pipermail/lfs-support/2006-July/031078.html
+echo "=> "${0}" "`exec env`
+lfsmounted="${PartitionName} on $LFS type ext3 (rw)"
+echo "=> \${lfsmounted}="${lfsmounted}
+lfsmountedtest=`sudo mount`
+echo "=> \${lfsmountedtest}="${lfsmountedtest}
+# http://www.tldp.net/LDP/abs/html/testconstructs.html
+if echo "${lfsmountedtest}" | grep -q "${lfsmounted}" ; then
+        # The "-q" option to grep suppresses output.
+        echo "=> \"${lfsmounted}\" found in sudo mount"
+        echo "=> lfs is mounted on ${LFS}"
+else
+        echo "=> \"${lfsmounted}\" NOT found in sudo mount"
+        echo "=> mounting lfs on ${LFS}"
+        sudo mount -v -t ext3 ${PartitionName} ${LFS}
+fi
+
+dir=${LFS}/dev
+echo "=> \${LFS}/dev="${dir}
+echo "=> \${dir}="${dir}
+if [[ -d "${dir}" ]] ; then
+        echo "=> The directory "${dir}" exists."
+	ls -ld ${dir}
+        echo "=> Now mount --bind file systems for chroot."
+	# Ref: http://aplawrence.com/Linux/mount_bind.html
+        echo
+else
+	sudo mkdir -pv ${LFS}/{dev,proc,sys}
+	sudo mknod -m 600 ${LFS}/dev/console c 5 1
+	sudo mknod -m 666 ${LFS}/dev/null c 1 3
+fi
+
+#echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+#echo =ae{ Test if /dev is mounted
+#echo =ae{ Test if devpts is mounted
+#echo =ae{ Test if tmpfs shm is mounted
+#echo =ae{ Test if proc is mounted
+#echo =ae{ Test if sysfs is mounted
+#echo =ae{ Ref: http://www.linux.com/guides/abs-guide/string-manipulation.shtml
+#echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+#echo
+
+devmounted="/dev on ${LFS}/dev"
+echo "=> \${devmounted}="${devmounted}
+mountedtest=`sudo mount`
+if echo "${mountedtest}" | grep -q "${devmounted}" ; then
+	echo "=> \"${devmounted}\" found in sudo mount"
+	echo "=> /dev is mounted on ${LFS}/dev"
+else
+	echo "=> \"${devmounted}\" NOT found in sudo mount"
+	sudo mount --bind /dev ${LFS}/dev
+fi
+
+devbindmounted="/dev on ${LFS}/dev type none (rw,bind)"
+mountedtest=`sudo mount`
+if echo "${mountedtest}" | grep -q "${devbindmounted}" ; then
+	echo "=> \"${devbindmounted}\" found in sudo mount"
+	echo "=> --bind /dev is mounted on ${LFS}/dev"
+else
+	echo "=> \"${devbindmounted}\" NOT found in sudo mount"
+	sudo mount --bind /dev ${LFS}/dev
+fi
+
+devptsmounted="devpts on ${LFS}/dev/pts type devpts (rw)"
+echo "=> \${devptsmounted}="${devptsmounted}
+mountedtest=`sudo mount`
+if echo "${mountedtest}" | grep -q "${devptsmounted}"
+then
+	echo "=> \"${devptsmounted}\" found in sudo mount"
+        echo "=> devpts is mounted on ${LFS}/dev/pts"
+else
+	echo "=> \"${devptsmounted}\" NOT found in sudo mount"
+	sudo mount -vt devpts devpts ${LFS}/dev/pts
+fi
+
+tmpfsshmmounted="shm on ${LFS}/dev/shm type tmpfs (rw)"
+echo "=> \${tmpfsshmmounted}="${tmpfsshmmounted}
+mountedtest=`sudo mount`
+if echo "${mountedtest}" | grep -q "${tmpfsshmmounted}"
+then
+	echo "=> \"${tmpfsshmmounted}\" found in sudo mount"
+        echo "=> tmpfs shm is mounted on ${LFS}/dev/shm"
+else
+	echo "=> \"${tmpfsshmmounted}\" NOT found in sudo mount"
+	sudo mount -vt tmpfs shm ${LFS}/dev/shm
+fi
+
+procmounted="proc on ${LFS}/proc type proc (rw)"
+echo "=> \${procmounted}="${procmounted}
+mountedtest=`sudo mount`
+if echo "${mountedtest}" | grep -q "${procmounted}"
+then
+	echo "=> \"${procmounted}\" found in sudo mount"
+        echo "=> proc is mounted on ${LFS}/proc"
+else
+	echo "=> \"${procmounted}\" NOT found in sudo mount"
+	sudo mount -vt proc proc ${LFS}/proc
+fi
+
+sysfsmounted="sysfs on ${LFS}/sys type sysfs (rw)"
+echo "=> \${sysfsmounted}="${sysfsmounted}
+mountedtest=`sudo mount`
+if echo "${mountedtest}" | grep -q "${sysfsmounted}"
+then
+	echo "=> \"${sysfsmounted}\" found in sudo mount"
+        echo "=> sysfs is mounted on ${LFS}/sys"
+else
+	echo "=> \"${sysfsmounted}\" NOT found in sudo mount"
+	sudo mount -vt sysfs sysfs ${LFS}/sys
+fi
+
+#devptmxexists=${LFS}/dev/ptmx
+#if [[ -c "${devptmxexists}" ]] ; then
+#	echo "=> The character device "${devptmxexists}" exists for ptys."
+#	expect -c "spawn ls"
+#else
+#	# Ref: http://www.linuxfromscratch.org/lfs/faq.html#no-ptys
+#	sudo mknod ${LFS}/dev/ptmx c 4 2
+#	sudo chmod 666 ${LFS}/dev/ptmx
+#	expect -c "spawn ls"
+#fi
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+echo
+sudo mount
+echo
+df -h
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> ${LFS}/lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

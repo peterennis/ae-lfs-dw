@@ -1,0 +1,52 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+cd /sources
+echo "=> pwd="`pwd`
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> /lfs-logs/logSBU
+
+# Set variables for the package name and type
+PkgName=bison-2.2
+PkgType=bz2
+echo ${PkgName}" "${PkgType}
+
+# unpack
+if [[ "${PkgType}" == "gz" ]] ; then
+	gunzip ${PkgName}.tar.gz
+	tar -xvf ${PkgName}.tar
+elif [[ "${PkgType}" == "bz2" ]] ; then
+	bzip2 -cd ${PkgName}.tar.bz2 | tar xvf -
+fi
+
+# Configure and install
+cd ${PkgName}
+echo "=> pwd="`pwd`
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+./configure --prefix=/usr
+echo '#define YYENABLE_NLS 1' >> config.h
+make
+make check
+make install
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+
+# Remove the extracted source files and the compile directory
+echo
+cd /sources
+echo "=> pwd="`pwd`
+rm -rf ${PkgName}
+echo "=> Removed directory "${PkgName}
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> /lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

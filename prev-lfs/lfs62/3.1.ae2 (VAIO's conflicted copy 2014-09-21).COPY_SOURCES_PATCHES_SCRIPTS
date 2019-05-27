@@ -1,0 +1,32 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source ~/lfs-scripts/aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> ${LFS}/lfs-logs/logSBU
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ Download all source tarballs to \$LFS/sources
+echo =ae{ Download all patches to \${LFS}/sources
+echo =ae{ Download all scripts to \${LFS}/lfs-scripts
+echo =ae{ "        "cd \${LFS}
+echo =ae{ "        "pwd
+echo =ae{ "        "cp -uv ~/lfs/sources/\* \${LFS}/sources/
+echo =ae{ "        "cp -uv ~/lfs/lfs-scripts/\* \${LFS}/lfs-scripts/
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+echo "=> "${0}" "`exec env`
+cd ${LFS}
+echo "=> The current working directory is "$(pwd)
+cp -uv ~/sources/* ${LFS}/sources/
+cp -uv ~/lfs-scripts/* ${LFS}/lfs-scripts/
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> ${LFS}/lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

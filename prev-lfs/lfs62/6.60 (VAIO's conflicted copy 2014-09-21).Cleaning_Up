@@ -1,0 +1,52 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+LFS=/mnt/lfs
+export LFS
+echo "=> \${LFS}="${LFS}
+
+set -e -u -x
+source ${LFS}/lfs-scripts/aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo "=> pwd="`pwd`
+
+echo
+echo _________________________________________________________________________________
+echo "=>A: \${0}="${0}"    \${1}="${1}"    \${2}="${2}"    \${3}="${3}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> ${LFS}/lfs-logs/logSBU
+
+if [[ ${#} -eq 3 ]] ; then
+        echo "The command line contains ${#} arguments"
+else
+        echo $(Usage /dev/\<xxx\> 1\|2 ./lfs-scripts/_Ch\?_Build)
+        exit 1
+fi
+
+echo "=>B: "${0}"    "${1}"    "${2}"    "${3}
+if [[ ${2} -ne 1 ]] && [[ ${2} -ne 2 ]] ; then
+        echo "=> The second parameter indicates 1 or 2 pass compiling."
+        echo "=> Use 1 or 2."
+        exit 1
+fi
+
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ The /tools directory is intentionally NOT deleted at this time!
+echo =ae{ NOTE: \${3} will be _Ch7_Build or _Ch8_Build etc.
+echo =ae{ NOTE: PS4 is used to set the command output indicator in log files
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+sudo chroot "${LFS}" /usr/bin/env -i \
+    HOME=/root TERM="${TERM}" PS1='\u:\w\$ ' PS4='cmd: ' \
+    PATH=/bin:/usr/bin:/sbin:/usr/sbin \
+    /bin/bash "${3}" "${1}" "${2}" --login
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> ${LFS}/lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

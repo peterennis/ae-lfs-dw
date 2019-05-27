@@ -1,0 +1,57 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+cd /sources
+echo "=> pwd="`pwd`
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> /lfs-logs/logSBU
+
+# Set variables for the package name and type
+PkgName=readline-5.1
+PkgType=gz
+echo ${PkgName}" "${PkgType}
+
+# unpack
+if [[ "${PkgType}" == "gz" ]] ; then
+        gzip -cd ${PkgName}.tar.gz | tar xvf -
+elif [[ "${PkgType}" == "bz2" ]] ; then
+	bzip2 -cd ${PkgName}.tar.bz2 | tar xvf -
+fi
+
+# Configure and install
+cd ${PkgName}
+echo "=> pwd="`pwd`
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+patch -Np1 -i ../${PkgName}-fixes-3.patch
+sed -i '/MV.*old/d' Makefile.in
+sed -i '/{OLDSUFF}/c:' support/shlib-install
+./configure --prefix=/usr --libdir=/lib
+make SHLIB_LIBS=-lncurses
+make install
+chmod -v 755 /lib/lib{readline,history}.so*
+mv -v /lib/lib{readline,history}.a /usr/lib
+rm -v /lib/lib{readline,history}.so
+ln -sfv ../../lib/libreadline.so.5 /usr/lib/libreadline.so
+ln -sfv ../../lib/libhistory.so.5 /usr/lib/libhistory.so
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+
+# Remove the source file and the compile directory
+echo
+cd /sources
+echo "=> pwd="`pwd`
+rm -rf ${PkgName}
+echo "=> Removed directory "${PkgName}
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> /lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

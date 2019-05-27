@@ -1,0 +1,164 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+cd /sources
+echo "=> pwd="`pwd`
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> /lfs-logs/logSBU
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ Important 
+echo =ae{ In this section, the test suite for GCC is considered critical.
+echo =ae{ Do not skip it under any circumstance. 
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+# Set a variable for the package name
+PkgName=gcc-4.0.3
+PkgType=bz2
+echo ${PkgName}" "${PkgType}
+
+# unpack
+if [[ "${PkgType}" == "gz" ]] ; then
+	gunzip ${PkgName}.tar.gz
+	tar -xvf ${PkgName}.tar
+elif [[ "${PkgType}" == "bz2" ]] ; then
+	bzip2 -cd ${PkgName}.tar.bz2 | tar xvf -
+fi
+
+# Configure and install
+cd ${PkgName}
+echo "=> pwd="`pwd`
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+sed -i 's/install_to_$(INSTALL_DEST) //' libiberty/Makefile.in
+sed -i 's/^XCFLAGS =$/& -fomit-frame-pointer/' gcc/Makefile.in
+sed -i 's@\./fixinc\.sh@-c true@' gcc/Makefile.in
+sed -i 's/@have_mktemp_command@/yes/' gcc/gccbug.in
+mkdir -pv ../gcc-build
+cd ../gcc-build
+echo "=> pwd="`pwd`
+../${PkgName}/configure --prefix=/usr \
+	--libexecdir=/usr/lib --enable-shared \
+	--enable-threads=posix --enable-__cxa_atexit \
+	--enable-clocale=gnu --enable-languages=c,c++
+make
+make -i -k check
+
+gcctestresults="/lfs-logs/gcc_test_summary"
+if [[ -e ${gcctestresults} ]] ; then
+        echo "=> The file "${gcctestresults}" exists."
+	../${PkgName}/contrib/test_summary >> /lfs-logs/gcc_test_summary_all_results-2
+	echo "=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae" >> /lfs-logs/gcc_test_summary_all_results-2
+	../${PkgName}/contrib/test_summary | grep -A7 Summ >> /lfs-logs/gcc_test_summary-2
+	echo "=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae" >> /lfs-logs/gcc_test_summary-2
+else
+	../${PkgName}/contrib/test_summary >> /lfs-logs/gcc_test_summary_all_results
+	echo "=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae" >> /lfs-logs/gcc_test_summary_all_results
+	../${PkgName}/contrib/test_summary | grep -A7 Summ >> /lfs-logs/gcc_test_summary
+	echo "=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae" >> /lfs-logs/gcc_test_summary
+fi
+
+make install
+
+link=/usr/bin/cc
+echo "=> \${link}="${link}
+if [[ -L "${link}" ]] ; then
+        echo "=> The link "${link}" exists."
+        echo "=> The breakpoint is included because the link exists."
+        ls -l ${link}
+else
+	ln -sv ../usr/bin/cpp /lib
+	ln -sv gcc /usr/bin/cc
+fi
+
+echo 'main(){}' > dummy.c
+cc dummy.c -Wl,--verbose &> dummy.log
+readelf -l a.out | grep ': /lib'
+
+echo
+echo "=> Test for correct toolchain readjustment"
+programinterpreter=$(readelf -l a.out | grep ': /lib')
+if echo "${programinterpreter}" | grep -q "[Requesting program interpreter: /lib/ld-linux.so.2]" ; then
+        echo "=> ${programinterpreter} - FOUND"
+else
+        echo "=> ${programinterpreter} - NOT FOUND - ERROR!"
+        exit 1
+fi
+
+echo
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ Output of the last command will be:
+echo =ae{ "        "[Requesting program interpreter: /lib/ld-linux.so.2]
+echo =ae{ Now make sure that we are setup to use the correct startfiles:
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+grep -o '/usr/lib.*/crt[1in].* .*' dummy.log
+
+echo
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ There should be no errors, and the output of the last command will be:
+echo =ae{ "        "/usr/lib/gcc/i686-pc-linux-gnu/4.0.3/../../../crt1.o succeeded
+echo =ae{ "        "/usr/lib/gcc/i686-pc-linux-gnu/4.0.3/../../../crti.o succeeded
+echo =ae{ "        "/usr/lib/gcc/i686-pc-linux-gnu/4.0.3/../../../crtn.o succeeded
+echo =ae{ Next, verify the new linker is being used with the correct search paths:
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+grep 'SEARCH.*/usr/lib' dummy.log |sed 's|; |\n|g'
+
+echo
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ There should be no errors, and the output of the last command will be:
+echo =ae{ "        "SEARCH_DIR\(\"/usr/i686-pc-linux-gnu/lib\"\)
+echo =ae{ "        "SEARCH_DIR\(\"/usr/local/lib\"\)
+echo =ae{ "        "SEARCH_DIR\(\"/lib\"\)
+echo =ae{ "        "SEARCH_DIR\(\"/usr/lib\"\)\;
+echo =ae{ Next make sure that we are using the correct libc:
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+grep "/lib/libc.so.6 " dummy.log
+
+echo
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ There should be no errors, and the output of the last command will be:
+echo =ae{ "        "attempt to open /lib/libc.so.6 succeeded
+echo =ae{ Lastly, make sure GCC is using the correct dynamic linker:
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+grep found dummy.log
+
+echo
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ There should be no errors, and the output of the last command will be:
+echo =ae{ "        "found ld-linux.so.2 at /lib/ld-linux.so.2
+echo =ae{ If the output does not appear as shown above or is not received at all,
+echo =ae{ then something is seriously wrong. INVESTIGATE!
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+rm -v dummy.c a.out dummy.log
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+
+# Remove the extracted source files and the compile directory
+echo
+cd /sources
+echo "=> pwd="`pwd`
+rm -rf ${PkgName}
+echo "=> Removed directory "${PkgName}
+rm -rf gcc-build
+echo "=> Removed directory gcc-build"
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> /lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

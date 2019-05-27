@@ -1,0 +1,223 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+cd /lfs-scripts
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> /lfs-logs/logSBU
+
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ Chapter 6 Build
+echo =ae{ The commands are run in chroot
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+echo "=> pwd="`pwd`
+echo "=> whoami="`whoami`
+echo "=> "$0" "`exec env`
+echo "=> \${1}="${1}
+echo "=> \${2}="${2}
+
+# The Build script arguments are passed in the chroot command
+# which cause this test to fail so it is commented out.
+#
+#if [[ ${#} -eq 2 ]] ; then
+#        echo "The command line contains $# arguments"
+#else
+#        echo $(Usage /dev/\<xxx\> 1\||2)
+#        exit 1
+#fi
+
+echo "=> "${0}"    "${1}"    "${2}
+if [[ ${2} -ne 1 ]] && [[ ${2} -ne 2 ]] ; then
+        echo "=> The second parameter indicates 1 or 2 pass compiling."
+        echo "=> Use 1 or 2."
+        exit 1
+fi
+
+# Do not comment out 6.05 and 6.06 - they are required
+echo "=> Debug 1"
+./6.05.Creating_Directories > /lfs-logs/6.05.Creating_Directories.log 2>&1
+echo "=> Debug 2"
+./6.06.Creating_Essential_Files_And_Symlinks > /lfs-logs/6.06.Creating_Essential_Files_And_Symlinks.log 2>&1
+echo "=> Debug 3"
+
+#echo ${0} BREAK =====================================================
+#echo
+#exit
+# =====================================================
+
+if [[ ${2} -eq 1 ]] ; then
+	echo "=> Debug 4"
+	./6.07.Linux-Libc-Headers > /lfs-logs/6.07.Linux-Libc-Headers.log 2>&1
+	echo "=> Debug 5"
+	./6.08.Man-pages > /lfs-logs/6.08.Man-pages.log 2>&1
+	./6.09.Glibc > /lfs-logs/6.09.Glibc.log 2>&1
+	./6.10.Re-adjusting_The_Toolchain > /lfs-logs/6.10.Re-adjusting_The_Toolchain.log 2>&1
+	./6.11.Binutils > /lfs-logs/6.11.Binutils.log 2>&1
+	./6.12.GCC > /lfs-logs/6.12.GCC.log 2>&1
+	./6.13.Installation_Of_Berkeley_DB > /lfs-logs/6.13.Installation_Of_Berkeley_DB.log 2>&1
+	./6.14.Coreutils > /lfs-logs/6.14.Coreutils.log 2>&1
+	./6.15.Iana-Etc > /lfs-logs/6.15.Iana-Etc.log 2>&1
+	./6.16.M4 > /lfs-logs/6.16.M4.log 2>&1
+	./6.17.Bison > /lfs-logs/6.17.Bison.log 2>&1
+	./6.18.Ncurses > /lfs-logs/6.18.Ncurses.log 2>&1
+	./6.19.Procps > /lfs-logs/6.19.Procps.log 2>&1
+	./6.20.Sed > /lfs-logs/6.20.Sed.log 2>&1
+	./6.21.Libtool > /lfs-logs/6.21.Libtool.log 2>&1
+	./6.22.Perl > /lfs-logs/6.22.Perl.log 2>&1
+	./6.23.Readline > /lfs-logs/6.23.Readline.log 2>&1
+	./6.24.Zlib > /lfs-logs/6.24.Zlib.log 2>&1
+	./6.25.Autoconf > /lfs-logs/6.25.Autoconf.log 2>&1
+	./6.26.Automake > /lfs-logs/6.26.Automake.log 2>&1
+	./6.27.Bash > /lfs-logs/6.27.Bash.log 2>&1
+	./6.28.Bzip2 > /lfs-logs/6.28.Bzip2.log 2>&1
+	./6.29.Diffutils > /lfs-logs/6.29.Diffutils.log 2>&1
+	./6.30.E2fsprogs > /lfs-logs/6.30.E2fsprogs.log 2>&1
+	./6.31.File > /lfs-logs/6.31.File.log 2>&1
+	./6.32.Findutils > /lfs-logs/6.32.Findutils.log 2>&1
+	./6.33.Flex > /lfs-logs/6.33.Flex.log 2>&1
+	./6.34.GRUB > /lfs-logs/6.34.GRUB.log 2>&1
+	./6.35.Gawk > /lfs-logs/6.35.Gawk.log 2>&1
+	./6.36.Gettext > /lfs-logs/6.36.Gettext.log 2>&1
+	./6.37.Grep > /lfs-logs/6.37.Grep.log 2>&1
+	./6.38.Groff > /lfs-logs/6.38.Groff.log 2>&1
+	./6.39.Gzip > /lfs-logs/6.39.Gzip.log 2>&1
+	./6.40.Inetutils > /lfs-logs/6.40.Inetutils.log 2>&1
+	./6.41.IPRoute2 > /lfs-logs/6.41.IPRoute2.log 2>&1
+	./6.42.Kbd > /lfs-logs/6.42.Kbd.log 2>&1
+	./6.43.Less > /lfs-logs/6.43.Less.log 2>&1
+	./6.44.Make > /lfs-logs/6.44.Make.log 2>&1
+	./6.45.Man-DB > /lfs-logs/6.45.Man-DB.log 2>&1
+	./6.46.Mktemp > /lfs-logs/6.46.Mktemp.log 2>&1
+	./6.47.Module-Init-Tools > /lfs-logs/6.47.Module-Init-Tools.log 2>&1
+	./6.48.Patch > /lfs-logs/6.48.Patch.log 2>&1
+	./6.49.Psmisc > /lfs-logs/6.49.Psmisc.log 2>&1
+	./6.50.Shadow > /lfs-logs/6.50.Shadow.log 2>&1
+	./6.51.Sysklogd > /lfs-logs/6.51.Sysklogd.log 2>&1
+	./6.52.Sysvinit > /lfs-logs/6.52.Sysvinit.log 2>&1
+	./6.53.Tar > /lfs-logs/6.53.Tar.log 2>&1
+	./6.54.Texinfo > /lfs-logs/6.54.Texinfo.log 2>&1
+	./6.55.Udev > /lfs-logs/6.55.Udev.log 2>&1
+	./6.56.Util-linux > /lfs-logs/6.56.Util-linux.log 2>&1
+	./6.57.Vim > /lfs-logs/6.57.Vim.log 2>&1
+	./6.59.Stripping_Again > /lfs-logs/6.59.Stripping_Again.log 2>&1
+fi
+
+if [[ ${2} -eq 2 ]] ; then
+	./6.07.Linux-Libc-Headers
+#	#./6.07.Linux-Libc-Headers
+	./6.08.Man-pages
+#	#./6.08.Man-pages
+	./6.09.Glibc
+#	#./6.09.Glibc
+	./6.10.Re-adjusting_The_Toolchain
+#	#./6.10.Re-adjusting_The_Toolchain
+	./6.11.Binutils
+#	#./6.11.Binutils
+	./6.12.GCC
+#	#./6.12.GCC
+	./6.13.Installation_Of_Berkeley_DB
+	./6.13.Installation_Of_Berkeley_DB
+	./6.14.Coreutils
+	./6.14.Coreutils
+	./6.15.Iana-Etc
+	./6.15.Iana-Etc
+	./6.16.M4
+	./6.16.M4
+	./6.17.Bison
+	./6.17.Bison
+	./6.18.Ncurses
+	./6.18.Ncurses
+	./6.19.Procps
+	./6.19.Procps
+	./6.20.Sed
+	./6.20.Sed
+	./6.21.Libtool
+	./6.21.Libtool
+	./6.22.Perl
+	./6.22.Perl
+	./6.23.Readline
+	./6.23.Readline
+	./6.24.Zlib
+	./6.24.Zlib
+	./6.25.Autoconf
+	./6.25.Autoconf
+	./6.26.Automake
+	./6.26.Automake
+	./6.27.Bash
+	./6.27.Bash
+	./6.28.Bzip2
+	./6.28.Bzip2
+	./6.29.Diffutils
+	./6.29.Diffutils
+	./6.30.E2fsprogs
+	./6.30.E2fsprogs
+	./6.31.File
+	./6.31.File
+	./6.32.Findutils
+	./6.32.Findutils
+	./6.33.Flex
+	./6.33.Flex
+	./6.34.GRUB
+	./6.34.GRUB
+	./6.35.Gawk
+	./6.35.Gawk
+	./6.36.Gettext
+	./6.36.Gettext
+	./6.37.Grep
+	./6.37.Grep
+	./6.38.Groff
+	./6.38.Groff
+	./6.39.Gzip
+	./6.39.Gzip
+	./6.40.Inetutils
+	./6.40.Inetutils
+	./6.41.IPRoute2
+	./6.41.IPRoute2
+	./6.42.Kbd
+	./6.42.Kbd
+	./6.43.Less
+	./6.43.Less
+	./6.44.Make
+	./6.44.Make
+	./6.45.Man-DB
+	./6.45.Man-DB
+	./6.46.Mktemp
+	./6.46.Mktemp
+	./6.47.Module-Init-Tools
+	./6.47.Module-Init-Tools
+	./6.48.Patch
+	./6.48.Patch
+	./6.49.Psmisc
+	./6.49.Psmisc
+	./6.50.Shadow
+	./6.50.Shadow
+	./6.51.Sysklogd
+	./6.51.Sysklogd
+	./6.52.Sysvinit
+	./6.52.Sysvinit
+	./6.53.Tar
+	./6.53.Tar
+	./6.54.Texinfo
+	./6.54.Texinfo
+	./6.55.Udev
+	./6.55.Udev
+	./6.56.Util-linux
+	./6.56.Util-linux
+	./6.57.Vim
+	./6.57.Vim
+	./6.59.Stripping_Again
+fi
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> /lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

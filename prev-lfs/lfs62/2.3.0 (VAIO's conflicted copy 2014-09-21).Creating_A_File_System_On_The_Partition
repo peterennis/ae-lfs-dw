@@ -1,0 +1,59 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source ~/lfs-scripts/aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+# NOTE: Use logSBU.start
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> ~/lfs-scripts/logSBU.start
+
+if [[ ${#} -eq 2 ]] ; then
+	echo "The command line contains ${#} arguments"
+else
+        echo $(Usage /dev/\<xxx\> 1\|2)
+	exit 1
+fi
+
+echo "=> "${0}"    "${1}"    "${2}
+if [[ ${2} -ne 1 ]] && [[ ${2} -ne 2 ]] ; then
+	echo "=> The second parameter indicates 1 or 2 pass compiling."
+	echo "=> Use 1 or 2."
+	exit 1
+fi
+
+PartitionName=${1}		# fc4 adaept /dev/hdc1
+				# fc5 www.adaept.com /dev/hdb1
+
+echo PartitionName=${PartitionName}
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ To create an ext3 file system on the LFS partition:
+echo =ae{ "        "sudo /sbin/mke2fs -jv /dev/\<xxx\>
+echo =ae{ To check if your host system uses custom enhancements:
+echo =ae{ "        "sudo /sbin/debugfs -R feature /dev/\<xxx\>
+echo =ae{ If the output contains features other than:
+echo =ae{ dir_index, filetype, large_file, resize_inode or sparse_super then
+echo =ae{ you should compile the stock E2fsprogs package
+echo =ae{ For adaept /mnt/lfs on the secondary IDE channel:
+echo =ae{ "        "sudo /sbin/debugfs -R feature /dev/hdc1
+echo =ae{ For www.adaept.com /mnt/lfs:
+echo =ae{ "        "sudo /sbin/debugfs -R feature /dev/hdb1
+echo =ae{ Refer to the script 2.3.ae1.CREATE_LFS_FILE_SYSTEM for details
+echo =ae{ If a swap partition was created, it will need to be initialized for use
+echo =ae{ by issuing the command below. If you are using an existing swap partition,
+echo =ae{ there is no need to format it.
+echo =ae{ "        "sudo /sbin/mkswap /dev/\<yyy\>
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+echo sudo /sbin/debugfs -R feature ${PartitionName}
+sudo /sbin/debugfs -R feature ${PartitionName}
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> ~/lfs-scripts/logSBU.start
+echo "=>DONE "${0}
+echo

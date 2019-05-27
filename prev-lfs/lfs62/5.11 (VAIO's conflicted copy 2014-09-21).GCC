@@ -1,0 +1,142 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+cd ${LFS}/lfs-scripts
+echo "=> pwd="`pwd`
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+cd ${LFS}/sources
+echo "=> pwd="`pwd`
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> ${LFS}/lfs-logs/logSBU
+
+# Set a variable for the package name
+PkgName=gcc-4.0.3
+PkgType=bz2
+echo ${PkgName}" "${PkgType}
+
+# unpack
+if [[ "${PkgType}" == "gz" ]] ; then
+        gunzip ${PkgName}.tar.gz
+        tar -xvf ${PkgName}.tar
+elif [[ "${PkgType}" == "bz2" ]] ; then
+        bzip2 -cd ${PkgName}.tar.bz2 | tar xvf -
+fi
+
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ PTYs are most commonly implemented via the devpts file system.
+echo =ae{ Check to see if the host system is set up correctly in this regard by 
+echo =ae{ performing a quick test:
+echo =ae{ "        "expect -c "spawn ls"
+echo =ae{ The response might be:
+echo =ae{ "        "The system has no more ptys.
+echo =ae{ "        "Ask your system administrator to create more.
+echo =ae{ If the above message is seen, the host does not have PTYs set up properly.
+echo =ae{ There is no point in running the test suites for GCC and Binutils until 
+echo =ae{ this issue is resolved. Please consult the LFS FAQ at:
+echo =ae{ "        "http://www.linuxfromscratch.org/lfs/faq.html#no-ptys
+echo =ae{ for more information on how to get PTYs working.
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+expect -c "spawn ls"
+
+# Configure and install
+cd ${PkgName}
+echo "=> pwd="`pwd`
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+# The running of the fixincludes  script can be suppressed by issuing the following commands:
+original=/gcc/Makefile.in.orig
+echo "=> \${original}="${original}
+if [[ -e ${original} ]] ; then
+        echo "=> The file "${original}" exists."
+        echo "=> The breakpoint is included because the file exists."
+else
+	cp -v gcc/Makefile.in{,.orig} &&
+	sed 's@\./fixinc\.sh@-c true@' gcc/Makefile.in.orig > gcc/Makefile.in
+fi
+
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ The bootstrap build performed in Section 5.4, GCC-4.0.3 - Pass 1 built
+echo =ae{ GCC with the -fomit-frame-pointer compiler flag. Non-bootstrap builds omit
+echo =ae{ this flag by default, so apply the following sed to use it in order to
+echo =ae{ ensure consistent compiler builds.
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+temporary=/gcc/Makefile.in.tmp
+echo "=> \${temporary}="${temporary}
+if [[ -e ${temporary} ]] ; then
+        echo "=> The file "${temporary}" exists."
+        echo "=> The breakpoint is included because the file exists."
+else
+	cp -v gcc/Makefile.in{,.tmp} &&
+	sed 's/^XCFLAGS =$/& -fomit-frame-pointer/' gcc/Makefile.in.tmp \
+		> gcc/Makefile.in
+fi
+
+patch -Np1 -i ../${PkgName}-specs-1.patch
+mkdir -pv ../gcc-build
+cd ../gcc-build
+echo "=> pwd="`pwd`
+../${PkgName}/configure --prefix=/tools \
+    --with-local-prefix=/tools --enable-clocale=gnu \
+    --enable-shared --enable-threads=posix \
+    --enable-__cxa_atexit --enable-languages=c,c++ \
+    --disable-libstdcxx-pch
+make
+
+# To run the GCC test suite anyway, use the following command:
+#make -k check
+#../${PkgName}/contrib/test_summary
+#../${PkgName}/contrib/test_summary | grep -A7 Summ
+make install
+
+# Run sanity check again
+echo 'main(){}' > dummy.c
+cc dummy.c
+readelf -l a.out | grep ': /tools'
+
+echo
+echo "=> Test for correct toolchain readjustment"
+programinterpreter=$(readelf -l a.out | grep ': /tools')
+echo "=> \${programinterpreter}="${programinterpreter}
+if echo "${programinterpreter}" | grep -q "[Requesting program interpreter: /tools/lib/ld-linux.so.2]" ; then
+        echo "=> ${programinterpreter} - FOUND"
+else
+        echo "=> ${programinterpreter} - NOT FOUND - ERROR!"
+        exit 1
+fi
+
+rm -v dummy.c a.out
+
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ If everything is working correctly, there should be no errors, and the 
+echo =ae{ output of the last command will be of the form:
+echo =ae{ "        [Requesting program interpreter: /tools/lib/ld-linux.so.2]"
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+
+# Remove the extracted source files and the compile directory
+echo
+cd ${LFS}/sources
+echo "=> pwd="`pwd`
+rm -rf ${PkgName}
+echo "=> Removed directory "${PkgName}
+rm -rf gcc-build
+echo "=> Removed directory gcc-build"
+echo "=> Show a reverse sort list of \${LFS}/tools/bin:"
+ls -ltr ${LFS}/tools/bin
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> ${LFS}/lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

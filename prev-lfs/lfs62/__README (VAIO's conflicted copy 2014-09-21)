@@ -1,0 +1,365 @@
+Setup SVN per BLFS
+
+http://www.linuxfromscratch.org/blfs/view/stable/server/svnserver.html
+
+[developer@lfs ~]$ sudo su -
+[root@lfs ~]# groupadd -g 56 svn &&
+> useradd -c "SVN Owner" -d /home/svn -m -g svn -s /bin/false -u 56 svn
+[root@lfs ~]# groupadd -g 57 svntest &&
+> usermod -G svntest svn
+[root@lfs ~]# mv /usr/bin/svn /usr/bin/svn.orig &&
+> mv /usr/bin/svnserve /usr/bin/svnserve.orig &&
+> cat >> /usr/bin/svn << "EOF"
+> #!/bin/sh
+> umask 002
+> /usr/bin/svn.orig "$@"
+> EOF
+[root@lfs ~]# cat >> /usr/bin/svnserve << "EOF"
+> #!/bin/sh
+> umask 002
+> /usr/bin/svnserve.orig "$@"
+> EOF
+[root@lfs ~]# chmod 0755 /usr/bin/svn{,serve}
+[root@lfs ~]# install -d -m0755 /srv &&
+> install -d -m0755 -o svn -g svn /srv/svn/repositories &&
+> svnadmin create --fs-type fsfs /srv/svn/repositories/svntest
+[root@lfs ~]#
+[root@lfs ~]# pwd
+/root
+[root@lfs ~]# whoami
+root
+[root@lfs ~]# useradd -m blfs
+[root@lfs ~]# useradd -m clfs
+[root@lfs ~]# useradd -m hlfs
+[root@lfs ~]# su - blfs
+[blfs@lfs ~]$ pwd
+/home/blfs
+[blfs@lfs ~]$
+[root@lfs ~]# gpasswd -a blfs adaept
+Adding user blfs to group adaept
+[root@lfs ~]# gpasswd -a clfs adaept
+Adding user clfs to group adaept
+[root@lfs ~]# gpasswd -a hlfs adaept
+Adding user hlfs to group adaept
+[root@lfs ~]# cat /etc/group | grep adaept
+adaept:x:501:adaept,developer,lfs,blfs,clfs,hlfs
+[root@lfs ~]#
+[root@lfs ~]# svnadmin create --fs-type fsfs /srv/svn/repositories/lfs
+[root@lfs ~]# su - lfs
+lfs:~$ mkdir trunk
+lfs:~$ mkdir branches
+lfs:~$ mkdir tags
+lfs:~$ ls
+branches  lfs-scripts  sources  tags  trunk
+lfs:~$ mv lfs-scripts trunk/
+lfs:~$ mv sources trunk/
+lfs:~$ ls -la trunk
+total 28
+drwxr-xr-x  4 lfs lfs 4096 Feb  1 22:45 .
+drwx------  6 lfs lfs 4096 Feb  1 22:45 ..
+drwxr-xr-x  2 lfs lfs 4096 Feb  1 22:41 lfs-scripts
+drwxr-xr-x  2 lfs lfs 4096 Feb  1 21:40 sources
+lfs:~$ exit
+[root@lfs ~]# svn import -m "Initial import." \
+> /home/lfs \
+> file:///srv/svn/repositories/lfs
+Adding         /home/lfs/.bashrc
+Adding         /home/lfs/trunk
+Adding         /home/lfs/trunk/sources
+Adding  (bin)  /home/lfs/trunk/sources/sed-4.1.4.tar.gz
+Adding  (bin)  /home/lfs/trunk/sources/mktemp-1.5.tar.gz.sig
+Adding         /home/lfs/trunk/sources/perl-5.8.6.tar.bz2.md5
+...
+Adding         /home/lfs/.mc/Tree
+Adding         /home/lfs/.mc/history
+Adding         /home/lfs/tags
+Adding         /home/lfs/.profile
+
+Committed revision 1.
+[root@lfs ~]#
+[root@lfs ~]# chown -R svn:svntest /srv/svn/repositories/svntest &&
+> chmod -R g+w /srv/svn/repositories/svntest &&
+> chmod g+s /srv/svn/repositories/svntest/db
+[root@lfs ~]#
+[root@lfs ~]# chown -R svn:lfs /srv/svn/repositories/lfs && chmod -R g+w /srv/svn/repositories/lfs && chmod g+s /srv/svn/repositories/lfs/db
+[root@lfs ~]#
+[root@lfs ~]# usermod -G svn,svntest,adaept lfs
+[root@lfs ~]#
+[root@lfs ~]# su - lfs
+lfs:~$ svnlook --show-ids tree /srv/svn/repositories/lfs/
+/ <0.0.r1/165225349>
+ .bashrc <1.0.r1/165171213>
+ trunk/ <2.0.r1/165222986>
+  sources/ <3.0.r1/165203381>
+   sed-4.1.4.tar.gz <4.0.r1/165171402>
+   mktemp-1.5.tar.gz.sig <5.0.r1/165171834>
+...
+ .viminfo <4x.0.r1/165223247>
+ branches/ <4y.0.r1/165223380>
+ .emacs <4z.0.r1/165223453>
+ .gtkrc <50.0.r1/165223584>
+ .bash_profile <51.0.r1/165223714>
+ .bash_history <52.0.r1/165223850>
+ .mc/ <53.0.r1/165224519>
+  Tree <55.0.r1/165224124>
+  ini <54.0.r1/165223990>
+  history <56.0.r1/165224255>
+ .profile <58.0.r1/165224715>
+ tags/ <57.0.r1/165224646>
+lfs:~$
+lfs:~$
+lfs:~$ svn checkout file:///srv/svn/repositories/lfs/trunk lfs
+A    lfs/sources
+...
+A    lfs/lfs-scripts/5._28.Bash
+A    lfs/lfs-scripts/5._13.Binutils
+Checked out revision 1.
+lfs:~$ ls
+branches  lfs  tags  trunk
+lfs:~$ pwd
+/home/lfs
+lfs:~$ cd lfs
+lfs:~/lfs$ ls
+lfs-scripts  sources
+lfs:~/lfs$ mv l* ..
+lfs:~/lfs$ mv s* ..
+lfs:~/lfs$ cd ..
+lfs:~$ ls
+branches  lfs  lfs-scripts  sources  tags  trunk
+lfs:~$ rm -rf lfs
+lfs:~$ ls
+branches  lfs-scripts  sources  tags  trunk
+lfs:~$ rm -rf branches
+lfs:~$ rm -rf tags
+lfs:~$ rm -rf trunk
+lfs:~/lfs-scripts$ svn delete .__README.swp
+D         .__README.swp
+lfs:~/lfs-scripts$
+
+Scripting Guidelines
+http://www.cs.mu.oz.au/~pde/course/shell_scripts.html
+Linux kernel coding style
+http://www.omesc.com/content/docs/CodingStyle
+SLEW: Space Low Early Warning
+http://linuxgazette.net/issue13/slew.html
+Shell Script Variables
+http://kia.etel.ru/lib/linnet/31620119.htm
+
+[Philip@fc5 lfs]$ df -h
+Filesystem            Size  Used Avail Use% Mounted on
+/dev/hda3              12G  4.6G  6.2G  43% /
+/dev/hda1              99M   13M   82M  14% /boot
+tmpfs                 252M     0  252M   0% /dev/shm
+/dev/hdb2             9.5G  903M  8.1G  10% /home
+/dev/hdb1             9.7G  541M  8.6G   6% /mnt/lfs
+/dev/hdb3              18G  386M   16G   3% /opt
+
+
+Create hlfs-scripts SVN Repository
+==================================
+
+[Philip@fc5 ~]$ su -
+Password:
+[root@fc5 ~]# svnadmin create --fs-type fsfs /srv/svn/repositories/hlfs-scripts
+[root@fc5 ~]# ls -l /srv/svn/repositories
+total 12
+drwxr-xr-x 7 root root 4096 Sep 29 11:27 hlfs-scripts
+drwxrwxr-x 7 svn  lfs  4096 Apr 12 13:31 lfs-scripts
+[root@fc5 ~]# 
+[root@fc5 ~]# useradd -m hlfs
+[root@fc5 ~]# passwd hlfs
+Changing password for user hlfs.
+New UNIX password: 
+BAD PASSWORD: it does not contain enough DIFFERENT characters
+Retype new UNIX password: 
+passwd: all authentication tokens updated successfully.
+[root@fc5 ~]# 
+[root@fc5 ~]# su - hlfs
+[hlfs@fc5 ~]$ pwd
+/home/hlfs
+[hlfs@fc5 ~]$ 
+[root@fc5 ~]# 
+[root@fc5 ~]# cat /etc/group | grep lfs
+svn:x:56:svn,lfs,Philip
+lfs:x:501:lfs,Philip
+hlfs:x:503:
+[root@fc5 ~]# 
+[root@fc5 ~]# gpasswd -a hlfs lfs
+Adding user hlfs to group lfs
+[root@fc5 ~]# 
+[root@fc5 ~]# cat /etc/passwd | grep lfs
+lfs:x:501:501::/home/lfs:/bin/bash
+hlfs:x:503:503::/home/hlfs:/bin/bash
+[root@fc5 ~]# 
+[root@fc5 ~]# grep ALL /etc/sudoers 
+                        LC_PAPER LC_TELEPHONE LC_TIME LC_ALL LANGUAGE LINGUAS \
+root    ALL=(ALL) ALL
+lfs     ALL=(ALL)       NOPASSWD: ALL
+hlfs    ALL=(ALL)       NOPASSWD: ALL
+Philip  ALL=(ALL)       NOPASSWD: ALL
+# %wheel        ALL=(ALL)       ALL
+# %wheel        ALL=(ALL)       NOPASSWD: ALL
+# %users  ALL=/sbin/mount /cdrom,/sbin/umount /cdrom
+[root@fc5 ~]# 
+[root@fc5 ~]# cd /home/hlfs/hlfs-scripts/trunk
+[root@fc5 trunk]# cp /home/lfs/lfs-scripts/* .
+[root@fc5 trunk]# ls _*
+_Build_All_Chapters  _Ch5_Build  _Ch6_Sanity_Test  _Ch7_Build  _Ch8_Build  __README
+_Ch1234_Setup        _Ch6_Build  _Ch6_Setup        _Ch7_Setup  _Ch8_Setup
+[root@fc5 trunk]# 
+[root@fc5 trunk]#  svn import -m "Initial hlfs-scripts import from lfs-scripts" /home/hlfs/hlfs-scripts file:///srv/svn/repositories/hlfs-scripts
+...
+Adding         /home/hlfs/hlfs-scripts/trunk/7.05.Configuring_The_setclock_Script
+Adding         /home/hlfs/hlfs-scripts/trunk/6.18.Ncurses
+Adding         /home/hlfs/hlfs-scripts/branches
+Adding         /home/hlfs/hlfs-scripts/tags
+
+Committed revision 1.
+[root@fc5 trunk]# 
+[root@fc5 trunk]# chown -R svn:hlfs /srv/svn/repositories/hlfs-scripts && chmod -R g+w /srv/svn/repositories/hlfs-scripts && chmod g+s /srv/svn/repositories/hlfs-scripts/db
+[root@fc5 trunk]# 
+[root@fc5 trunk]# usermod -G svn,svntest,lfs hlfs
+[root@fc5 trunk]# cat /etc/group | grep lfs
+svn:x:56:svn,lfs,Philip,hlfs
+svntest:x:57:svn,hlfs
+lfs:x:501:lfs,Philip,hlfs
+hlfs:x:503:
+[root@fc5 trunk]# su - hlfs
+[hlfs@fc5 ~]$ svnlook --show-ids tree /srv/svn/repositories/hlfs-scripts/
+...
+  6.27.Bash <3k.0.r1/164042>
+  6.07.Linux-Libc-Headers <3j.0.r1/164274>
+  7.05.Configuring_The_setclock_Script <3l.0.r1/164520>
+  6.18.Ncurses <3m.0.r1/164777>
+ branches/ <3n.0.r1/171248>
+ tags/ <3o.0.r1/171318>
+[hlfs@fc5 ~]$
+/* DELETE hlfs-scripts AND DO SVN CHECKOUT */
+[hlfs@fc5 ~]$ rm -rf hlfs-scripts
+[hlfs@fc5 ~]$
+
+/* SETUP .bashrc AND .bash_profile */
+hlfs:~$ cat .bashrc
+set +h
+umask 022
+LFS=/mnt/hlfs
+LC_ALL=POSIX
+PATH=/tools/bin:/bin:/usr/bin
+export HLFS LC_ALL PATH
+hlfs:~$ cat .bash_profile
+exec env -i HOME=${HOME} TERM=${TERM} PS1='\u:\w\$ ' /bin/bash
+hlfs:~$ 
+
+/* CHECKOUT AND COMMIT AN EDIT */
+hlfs:~$ svn checkout file:///srv/svn/repositories/hlfs-scripts/trunk hlfs-scripts
+...
+A    hlfs-scripts/6.07.Linux-Libc-Headers
+A    hlfs-scripts/7.05.Configuring_The_setclock_Script
+A    hlfs-scripts/6.18.Ncurses
+Checked out revision 1.
+hlfs:~/hlfs-scripts$ svn commit 2.3.0* -m "change lfs-scripts to hlfs-scripts"
+Sending        2.3.0.Creating_A_File_System_On_The_Partition
+Transmitting file data .
+Committed revision 2.
+hlfs:~/hlfs-scripts$ 
+
+hlfs:~/hlfs-scripts$ sed -i 's/lfs-scripts/hlfs-scripts/' 2.3.ae1*
+hlfs:~/hlfs-scripts$ sed -i 's/lfs-scripts/hlfs-scripts/' 2.4*
+hlfs:~/hlfs-scripts$ sed -i 's/lfs-scripts/hlfs-scripts/' 3*
+hlfs:~/hlfs-scripts$ sed -i 's/lfs-scripts/hlfs-scripts/' 4*
+hlfs:~/hlfs-scripts$ sed -i 's/lfs-scripts/hlfs-scripts/' 5*
+hlfs:~/hlfs-scripts$ sed -i 's/lfs-scripts/hlfs-scripts/' 6*
+hlfs:~/hlfs-scripts$ sed -i 's/lfs-scripts/hlfs-scripts/' 7*
+hlfs:~/hlfs-scripts$ sed -i 's/lfs-scripts/hlfs-scripts/' 8*
+hlfs:~/hlfs-scripts$ sed -i 's/lfs-scripts/hlfs-scripts/' _Ch*
+hlfs:~/hlfs-scripts$ sed -i 's/lfs-scripts/hlfs-scripts/' ae*
+hlfs:~/hlfs-scripts$ sed -i 's/lfs-scripts/hlfs-scripts/' _B*
+hlfs:~/hlfs-scripts$ svn commit * -m "change lfs-scripts to hlfs-scripts"
+...
+Sending        _Ch7_Setup
+Sending        _Ch8_Build
+Sending        _Ch8_Setup
+Sending        aeSCRIPT_TEMPLATE
+Transmitting file data ..................................................................
+Committed revision 3.
+hlfs:~/hlfs-scripts$ 
+
+[hlfs@fc5 hlfs-scripts]$ 
+/* COPY SOURCE FILES FROM lfs/sources TO hlfs/sources AND DOWNLOAD OTHERS NEEDED */
+
+
+
+
+
+
+
+
+
+
+
+
+Linux From Scratch LFS is (c) 1999 - 2006 Gerard Beekmans
+adaept builder (c) 2003 - 2006 Peter F. Ennis 
+
+a6
+aeceix
+more than a royal flush
+aelfs
+
+
+INTRODUCTION
+
+The purpose of this build process is to follow the process and commands of the LFS book as closely as possible. It is intended to be an automated and scripted build process that does not require any additional software other than what is provided in the base system.  
+
+Each script is related to the section of the book by its chapter and section number. A section may have additional scripts which will be identified by .ae1, .ae2 etc. in the filename to show where changes are made. In the case where there are double digit subsections then all sections will use double digits, e.g. 5.01, so that the scripts will list as close as possible to the book index when using the `ls' command, e.g.
+
+Some section titles contain characters that have special meanings for bash and need to be escaped by using the backslash `\'. Some are not allowed, such as the forward slash `/' path separator. To reduce complications script names with special characters are not allowed so some section headers will be slightly modified e.g.
+
+	4.2.Creating_The_HLFS_tools_Directory
+
+The scripts have been tested using Fedora Core 5 as the host. The system uses sudo to allow easy changes between the LFS user and root. 
+
+The setup for sudo is done using the visudo command as root and modifying the user configuration as follows so that the password prompt is not needed:
+
+# User privilege specification
+root    ALL=(ALL) ALL
+lfs     ALL=(ALL)       NOPASSWD: ALL
+
+OVERVIEW
+
+Directories to be used in the $HLFS mount point for scripts, sources and logs:
+
+hlfs-logs
+hlfs-scripts
+sources
+
+Directories to be used in the lfs account for scripts and sources:
+
+$HOME/hlfs-scripts
+$HOME/sources
+
+GETTING STARTED
+
+The first script of the automated process is _Ch1234_Setup which will run all the necessary preparation steps. It is understood that the steps in this script will be run manually the very first time LFS build is run as some user interaction is needed with setup decisions. Thereafter the environment will be sound and the script will rapidly process the initial startup.
+
+Untar Code Example for gz or bz2 Files - Source code will be in $HLFS/sources directory
+
+PkgName=dejagnu-1.4.4
+PkgType=gz
+echo ${PkgName}" "${PkgType}
+
+# Copy the source files and unpack
+if [[ "${PkgType}" == "gz" ]] ; then
+        gunzip ${PkgName}.tar.gz
+        tar -xvf ${PkgName}.tar
+elif [[ "${PkgType}" == "bz2" ]] ; then
+        bzip2 -cd ${PkgName}.tar.bz2 | tar xvf -
+fi
+
+Test for Exit Failure in Log Files
+==================================
+
+hlfs:/mnt/hlfs/hlfs-logs$ grep -E "Exit Status.*=1" *
+hlfs:/mnt/hlfs/hlfs-logs$
+
+

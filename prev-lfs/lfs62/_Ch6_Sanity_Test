@@ -1,0 +1,43 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source ~/lfs-scripts/aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+LFS=/mnt/lfs
+export LFS
+echo "=> \${LFS}="${LFS}
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> ${LFS}/lfs-logs/logSBU
+
+
+if [[ ${#} -eq 2 ]] ; then
+        echo "The command line contains $# arguments"
+else
+        echo $(Usage /dev/\<xxx\> 1\|2)
+        exit 1
+fi
+
+echo "=> "${0}"    "${1}"    "${2}
+if [[ ${2} -ne 1 ]] && [[ ${2} -ne 2 ]] ; then
+        echo "=> The second parameter indicates 1 or 2 pass compiling."
+        echo "=> Use 1 or 2."
+        exit 1
+fi
+
+PartitionName=${1}                # fc4 adaept /dev/hdc1
+                                  # fc5 www.adaept.com /dev/hdb1
+
+./5.32.Changing_Ownership
+./6.02.Preparing_Virtual_Kernel_File_Systems ${1} ${2}
+./6.04.ae1.Entering_The_Chroot_Testing ${1} ${2}
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> ${LFS}/lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

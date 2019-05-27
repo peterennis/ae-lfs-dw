@@ -1,0 +1,187 @@
+# Ref: http://www.linuxtopia.org/online_books/advanced_bash_scripting_guide/assortedtips.html
+
+# SCRIPT LIBRARY
+# ------ -------
+
+# Note:
+# No "#!" here.
+# No "live code" either.
+
+# Useful variable definitions
+
+ROOT_UID=0             # Root has $UID 0.
+E_NOTROOT=101          # Not root user error. 
+MAXRETVAL=255          # Maximum (positive) return value of a function.
+SUCCESS=0
+FAILURE=-1
+
+# Functions
+
+# Ref: http://wiki.linuxfromscratch.org/alfs/browser/jhalfs/trunk/HLFS/jhahlfs?rev=2289
+# Ref: http://www.faqs.org/docs/abs/HTML/debugging.html
+# Ref: http://www.davidpashley.com/articles/writing-robust-shell-scripts.html
+# Ref: http://devmanual.gentoo.org/tools-reference/bash/index.html
+# Ref: http://www.debian-administration.org/articles/205
+
+set -e  # Enable error trapping
+set -u  # Trap undefined variables.
+        # Forces the programmer to define a variable before using it
+
+# VT100 colors
+declare -r  BLACK=$'\e[1;30m'
+declare -r  DK_GRAY=$'\e[0;30m'
+declare -r  RED=$'\e[31m'
+declare -r  GREEN=$'\e[32m'
+declare -r  YELLOW=$'\e[33m'
+declare -r  BLUE=$'\e[34m'
+declare -r  MAGENTA=$'\e[35m'
+declare -r  CYAN=$'\e[36m'
+declare -r  WHITE=$'\e[37m'
+declare -r  OFF=$'\e[0m'
+declare -r  BOLD=$'\e[1m'
+echo ${OFF}
+declare -r  REVERSE=$'\e[7m'
+echo ${OFF}
+declare -r  HIDDEN=$'\e[8m'
+echo ${OFF}
+declare -r  tab_=$'\t'
+declare -r  nl_=$'\n'
+
+#>>>>>>>>>>>>>>>ERROR TRAPPING >>>>>>>>>>>>>>>>>>>>
+#-----------------------#
+simple_error() {        # Basic error trap... JUST DIE
+#-----------------------#
+# If +e then disable text output
+if [ "${-}" =~ "e" ] ; then
+        echo -e ${0}" ${RED}ERROR:${GREEN} basic error trapped!${OFF}\n" >&2
+fi
+}
+
+exit_status() {
+set +x
+if [ ${?} -eq 0 ] ; then
+	echo -e "${GREEN}Exit Status ${0} \${?}="${?}"${OFF}\n" >&2
+else
+	# If exit status is not 0 then show red output message
+	echo -e "${RED}Exit Status ${0} \${?}="${?}"${OFF}\n" >&2
+fi
+echo -e "\t${BOLD}${YELLOW}So long and thanks for all the foo!\n${OFF}"
+set -x
+}
+##### Simple error TRAPS
+# ctrl-c   SIGINT
+# ctrl-y
+# ctrl-z   SIGTSTP
+# SIGHUP   1 HANGUP
+# SIGINT   2 INTERRUPT FROM KEYBOARD Ctrl-C
+# SIGQUIT  3
+# SIGKILL  9 KILL
+# SIGTERM 15 TERMINATION
+# SIGSTOP 17,18,23 STOP THE PROCESS
+#####
+set -e
+trap exit_status 0
+trap simple_error ERR
+trap 'echo -e "\n\n${RED}INTERRUPT${OFF} trapped\n" &&  exit 2'  1 2 3 15 17 18 23
+#>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+Usage ()			# "Usage:" message.
+{
+  if [ -z "${1}" ] ; then	# No arg passed.
+    msg=filename
+  else
+    msg="${@}"
+  fi
+
+  echo "Usage: `basename ${0}` "${msg}""
+}  
+
+Check_if_root ()       		# Check if root running script.
+{				# From "ex39.sh" example.
+  if [ "${UID}" -ne "${ROOT_UID}" ] ; then
+    echo "Must be root to run this script."
+    exit ${E_NOTROOT}
+  fi
+}  
+
+CreateTempfileName ()		# Creates a "unique" temp filename.
+{				# From "ex51.sh" example.
+  prefix=temp
+  suffix=`eval date +%s`
+  Tempfilename=${prefix}.${suffix}
+}
+
+isalpha2 ()			# Tests whether *entire string* is alphabetic.
+{				# From "isalpha.sh" example.
+  [ ${#} -eq 1 ] || return ${FAILURE}
+
+  case ${1} in
+  *[!a-zA-Z]*|"") return ${FAILURE};;
+  *) return ${SUCCESS};;
+  esac				# Thanks, S.C.
+}
+
+abs ()				# Absolute value.
+{				# Caution: Max return value = 255.
+  E_ARGERR=-999999
+
+  if [ -z "${1}" ] ; then	# Need arg passed.
+    return ${E_ARGERR}		# Obvious error value returned.
+  fi
+
+  if [ "${1}" -ge 0 ] ; then		# If non-negative,
+    absval=${1}				# stays as-is.
+  else					# Otherwise,
+    let "absval = (( 0 - ${1} ))"	# change sign.
+  fi  
+
+  return ${absval}
+}
+
+tolower ()			#  Converts string(s) passed as argument(s)
+{				#+ to lowercase.
+
+  if [ -z "${1}" ] ; then	#  If no argument(s) passed, send error message
+    echo "(null)"		#+ (C-style void-pointer error message)
+    return			#+ and return from function.
+  fi  
+
+  echo "${@}" | tr A-Z a-z
+  # Translate all passed arguments (${@}).
+
+  return
+
+# Use command substitution to set a variable to function output.
+# For example:
+#    oldvar="A seT of miXed-caSe LEtTerS"
+#    newvar=`tolower "${oldvar}"`
+#    echo "${newvar}"    # a set of mixed-case letters
+#
+# Exercise: Rewrite this function to change lowercase passed argument(s)
+#           to uppercase ... toupper()  [easy].
+}
+
+green_line ()			# Write 80 green underline characters to the console
+{
+	set +x # Turn off debugging
+	# Ref: http://stackoverflow.com/questions/5799303/print-a-character-repeatedly-in-bash
+	echo ${GREEN}
+	printf "%0.s_" {1..80}
+	echo ${nl_}
+}
+
+snip_start ()
+{
+	set +x
+	echo ${MAGENTA}
+	echo "----8<--------8<--------8<--------8<--------8<--------8<--------8<--------8<----"${OFF}
+	set -x
+}
+
+snip_end ()
+{
+	set +x
+	echo ${MAGENTA}
+	echo "---->8-------->8-------->8-------->8-------->8-------->8-------->8-------->8----"${OFF}
+	set -x
+}

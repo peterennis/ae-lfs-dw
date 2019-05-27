@@ -1,0 +1,46 @@
+#!/tools/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> /lfs-logs/logSBU
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ Creating Directories
+echo =ae{ The directory tree is based on the Filesystem Hierarchy Standard \(FHS\) 
+echo =ae{ \(available at http://www.pathname.com/fhs/\)
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+dir=/bin
+if [[ -d "${dir}" ]] ; then
+	echo "=> The directory "${dir}" exists."
+	echo "=> The breakpoint is included because "${dir}" exists."
+else
+	mkdir -pv /{bin,boot,etc/opt,home,lib,mnt,opt}
+	mkdir -pv /{media/{floppy,cdrom},sbin,srv,var}
+	install -dv -m 0750 /root
+	install -dv -m 1777 /tmp /var/tmp
+	mkdir -pv /usr/{,local/}{bin,include,lib,sbin,src}
+	mkdir -pv /usr/{,local/}share/{doc,info,locale,man}
+	mkdir -v  /usr/{,local/}share/{misc,terminfo,zoneinfo}
+	mkdir -pv /usr/{,local/}share/man/man{1..8}
+	for dir in /usr /usr/local; do
+		ln -sv share/{man,doc,info} ${dir}
+	done
+	mkdir -v /var/{lock,log,mail,run,spool}
+	mkdir -pv /var/{opt,cache,lib/{misc,locate},local}
+fi
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> /lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

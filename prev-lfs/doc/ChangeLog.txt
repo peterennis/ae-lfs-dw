@@ -1,0 +1,6 @@
+20140917:corinennis - add Style Guide.txt
+20140917:corinennis - add learning vim as a second goal, steps.txt, updated README.md, sed awk grep as to do's
+20140916:peterennis - add scripts from LFS 6.2
+20140916:peterennis - add changes to the top of the file to see newest first
+20140916:corinennis - add LFS-BOOK-7.5.pdf, made some changes to README.md
+20140916:peterennis - add bash cheat sheet from http://cli.learncodethehardway.org/bash_cheat_sheet.pdf

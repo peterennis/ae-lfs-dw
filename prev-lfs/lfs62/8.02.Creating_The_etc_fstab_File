@@ -1,0 +1,47 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source /lfs-scripts/aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> /lfs-logs/logSBU
+
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+# Refer to the book - these commands are specific to the machine
+
+#  8.2. Creating the /etc/fstab File
+xxx=hdb1
+yyy=hda2
+fff=ext3
+
+cat > /etc/fstab << "EOF"
+# Begin /etc/fstab
+
+# file system  mount-point  type     options           dump  fsck
+#                                                            order
+
+/dev/xxx       /            fff      defaults          1     1
+/dev/yyy       swap         swap     pri=1             0     0
+proc           /proc        proc     defaults          0     0
+sysfs          /sys         sysfs    defaults          0     0
+devpts         /dev/pts     devpts   gid=4,mode=620    0     0
+shm            /dev/shm     tmpfs    defaults          0     0
+# End /etc/fstab
+EOF
+# Ref:http://www.unix.com/showthread.php?s=&threadid=14085
+sed -i s/xxx/${xxx}/ /etc/fstab
+sed -i s/yyy/${yyy}/ /etc/fstab
+sed -i s/fff/${fff}/ /etc/fstab
+cat /etc/fstab
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> /lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

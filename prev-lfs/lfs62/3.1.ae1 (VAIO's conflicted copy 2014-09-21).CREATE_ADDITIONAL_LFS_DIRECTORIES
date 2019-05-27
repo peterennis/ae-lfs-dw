@@ -1,0 +1,65 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source ~/lfs-scripts/aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo ________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+# NOTE: Use logSBU.start
+echo ${DateAndTime}" "${0}" Start $(pwd) - logSBU.start" >> ~/lfs-scripts/logSBU.start
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ Copy the logSBU file to keep the history
+echo =ae{
+echo =ae{ Create additional directories by running the following as root \(sudo\):
+echo =ae{ "        "sudo mkdir \${LFS}/lfs-logs
+echo =ae{ "        "sudo chmod a+wt \${LFS}/lfs-logs
+echo =ae{ "        "sudo mkdir \${LFS}/lfs-scripts
+echo =ae{ "        "sudo chmod a+wt \${LFS}/lfs-scripts
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+echo "=> "${0}" "`exec env`
+dir=${LFS}/lfs-logs
+bookver=LFS-BOOK-6.2-NOCHUNKS.html
+echo "=> "dir=${dir}
+if [[ -d ${dir} ]] ; then
+       	echo "=> The directory "${dir}" exists."
+       	echo "=> The breakpoint is included because the directories have been created."
+else
+	sudo mkdir ${LFS}/lfs-logs
+	echo "=> Completed: sudo mkdir \${LFS}/lfs-logs"
+	sudo chmod a+wt ${LFS}/lfs-logs
+	echo "=> Completed: sudo chmod a+wt \${LFS}/lfs-logs"
+fi
+
+logSBU=${LFS}/lfs-logs/logSBU
+echo "=> logSBU="${logSBU}
+if [[ -e ${logSBU} ]] ; then
+	echo "=> The file "${logSBU}" exists."
+	echo "=> The breakpoint is included because the file exists."
+else
+	mv -v ~/lfs-scripts/logSBU.start ${LFS}/lfs-logs/logSBU
+	uname -a >> ${LFS}/lfs-logs/logSBU
+	echo ${bookver} >> ${LFS}/lfs-logs/logSBU
+fi
+
+dir=${LFS}/lfs-scripts
+echo "=> "dir=${dir}
+if [[ -d ${dir} ]] ; then
+       	echo "=> The directory "${dir}" exists."
+       	echo "=> The breakpoint is included because the directories have been created."
+else
+	sudo mkdir ${LFS}/lfs-scripts
+	echo "=> Completed: sudo mkdir \${LFS}/lfs-scripts"
+	sudo chmod a+wt ${LFS}/lfs-scripts
+	echo "=> Completed: sudo chmod a+wt \${LFS}/lfs-scripts"
+fi
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd) - logSBU" >> ${LFS}/lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

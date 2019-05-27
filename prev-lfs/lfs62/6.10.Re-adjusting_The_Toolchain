@@ -1,0 +1,128 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+# TO DO: Include test for running as root in correct chroot!
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> /lfs-logs/logSBU
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ Now that the final C libraries have been installed, it is time to adjust
+echo =ae{ the toolchain again.
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+ldreadjusted=/tools/bin/ld-6.10.Re-adjusting_The_Toolchain
+echo "=> \${ldreadjusted}="${ldreadjusted}
+if [[ -e "${ldreadjusted}" ]] ; then
+        echo "=> The file "${ldreadjusted}" exists."
+        echo "=> The breakpoint is included because the file exists."
+        link=/tools/$(gcc -dumpmachine)/bin/ld
+        echo "=> \${link}="${link}
+        ls -l ${link}
+else
+	mv -v /tools/bin/{ld,ld-6.10.Re-adjusting_The_Toolchain}
+	mv -v /tools/$(gcc -dumpmachine)/bin/{ld,ld-6.10.Re-adjusting_The_Toolchain}
+	cp -uv /tools/bin/ld-5.12.Binutils /tools/bin/ld
+	ln -sv /tools/bin/ld /tools/$(gcc -dumpmachine)/bin/ld
+
+	gcc -dumpspecs | \
+	perl -p -e 's@/tools/lib/ld-linux.so.2@/lib/ld-linux.so.2@g;' \
+		-e 's@\*startfile_prefix_spec:\n@$_/usr/lib/ @g;' > \
+		`dirname $(gcc --print-libgcc-file-name)`/specs
+fi
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+
+echo
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ Ensure that the basic functions \(compiling and linking\) of the adjusted
+echo =ae{ toolchain are working as expected. 
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+echo 'main(){}' > dummy.c
+cc dummy.c -Wl,--verbose &> dummy.log
+readelf -l a.out | grep ': /lib'
+
+echo
+echo "=> Test for correct toolchain readjustment"
+programinterpreter=$(readelf -l a.out | grep ': /lib')
+if echo "${programinterpreter}" | grep -q "[Requesting program interpreter: /lib/ld-linux.so.2]" ; then
+        echo "=> ${programinterpreter} - FOUND"
+else
+        echo "=> ${programinterpreter} - NOT FOUND - ERROR!"
+	exit 1
+fi
+
+echo
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ The output of the last command will be \(allowing for platform-specific 
+echo =ae{ differences in dynamic linker name\): 
+echo =ae{ "        "[Requesting program interpreter: /lib/ld-linux.so.2]
+echo =ae{ Now make sure that we are setup to use the correct start files: 
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+grep -o '/usr/lib.*/crt[1in].* .*' dummy.log
+
+echo
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ There should be no errors, and the output of the last command will be: 
+echo =ae{ "        "attempt to open /usr/lib/crt1.o succeeded
+echo =ae{ "        "attempt to open /usr/lib/crti.o succeeded
+echo =ae{ "        "attempt to open /usr/lib/crtn.o succeeded
+echo =ae{ Now verify that the new linker is being used with the correct search paths:
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+grep 'SEARCH.*/usr/lib' dummy.log |sed 's|; |\n|g'
+
+echo
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ There should be no errors, and the output of the last command will be: 
+echo =ae{ "        "SEARCH_DIR\(\"/tools/i686-pc-linux-gnu/lib\"\)
+echo =ae{ "        "SEARCH_DIR\(\"/usr/lib\"\)
+echo =ae{ "        "SEARCH_DIR\(\"/lib\"\);
+echo =ae{ Now make sure that we are using the correct libc:
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+grep "/lib/libc.so.6 " dummy.log
+
+echo
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ There should be no errors, and the output of the last command will be: 
+echo =ae{ "        "attempt to open /lib/libc.so.6 succeeded
+echo =ae{ Lastly, make sure GCC is using the correct dynamic linker: 
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+grep found dummy.log
+
+echo
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ There should be no errors, and the output of the last command will be: 
+echo =ae{ \(allowing for platform-specific differences in dynamic linker name\): 
+echo =ae{ "        "found ld-linux.so.2 at /lib/ld-linux.so.2
+echo =ae{ If the output does not appear as shown above or is not received at all,
+echo =ae{ then something is seriously wrong, so INVESTIGATE!
+echo =ae{ Once everything is working correctly, clean up the test files: 
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+gcc dummy.c -Wl,--verbose
+
+rm -v dummy.c a.out dummy.log
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> /lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

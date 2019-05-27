@@ -1,0 +1,30 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source /lfs-scripts/aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> /lfs-logs/logSBU
+
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+# Refer to the book - these commands are specific to the machine
+udevtest /block/hdc
+cat > /etc/udev/rules.d/82-cdrom.rules << "EOF"
+
+# Custom CD-ROM symlinks
+SUBSYSTEM=="block", ENV{ID_MODEL}=="LITE-ON_LTR-48246S", ENV{ID_REVISION}=="SGS3", SYMLINK+="cdrom"
+
+EOF
+cat /etc/udev/rules.d/82-cdrom.rules
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> /lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

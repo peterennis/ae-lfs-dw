@@ -1,0 +1,103 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source /lfs-scripts/aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> /lfs-logs/logSBU
+
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+# Refer to the book - these commands are specific to the machine
+
+#  7.13.1. Creating stable names for network interfaces
+# The following command will provide the hardware (MAC) address information
+grep -H . /sys/class/net/*/address
+echo
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ For each network card \(but not for the loopback interface\), invent a 
+echo =ae{ descriptive name, such as intel, and create Udev rules
+echo =ae{ The ifconfig command will also provide the hardware \(MAC\) address information
+echo =ae{ "        "sudo /sbin/ifconfig eth0
+echo =ae{ "        "sudo /sbin/ifconfig eth1
+echo =ae{ It is not yet installed on the LFS system, so this is a reminder on how
+echo =ae{ to get information on the machine from the host environment
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+eth0name=3com
+eth0mac=00:50:DA:93:BE:16
+eth0description="3Com Corporation 3c905B 100BaseTX [Cyclone] (rev 30)"
+eth1name=intel
+eth1mac=00:50:8B:B8:19:CB
+# NOTE: These parameters are specific to the machine setup - read the book
+cat > /etc/udev/rules.d/26-network.rules << "EOF"
+ACTION=="add", SUBSYSTEM=="net", SYSFS{address}=="eth0mac", NAME="eth0name"
+ACTION=="add", SUBSYSTEM=="net", SYSFS{address}=="eth1mac", NAME="eth1name"
+EOF
+
+# Ref:http://www.unix.com/showthread.php?s=&threadid=14085
+sed -i s/eth0name/${eth0name}/ /etc/udev/rules.d/26-network.rules
+sed -i s/eth0mac/${eth0mac}/ /etc/udev/rules.d/26-network.rules
+sed -i s/eth1name/${eth1name}/ /etc/udev/rules.d/26-network.rules
+sed -i s/eth1mac/${eth1mac}/ /etc/udev/rules.d/26-network.rules
+cat /etc/udev/rules.d/26-network.rules
+
+# NOTE: Using the bus position as a key, create Udev rules similar to the following:
+# and fix with sed as needed
+#cat > /etc/udev/rules.d/26-network.rules << "EOF"
+#ACTION=="add", SUBSYSTEM=="net", BUS=="pci", ID=="0000:00:0f.0", NAME="eth0name"
+#ACTION=="add", SUBSYSTEM=="net", BUS=="pci", ID=="0000:00:10.0", NAME="eth1name"
+#EOF
+
+#  7.13.2. Creating Network Interface Configuration Files
+# The following command creates a ipv4 file for the eth0 device:
+cd /etc/sysconfig/network-devices &&
+mkdir -pv ifconfig.${eth0name} &&
+cat > ifconfig.${eth0name}/ipv4 << "EOF"
+# eth0description
+ONBOOT=yes
+SERVICE=ipv4-static
+#IPADDR=71.159.214.241
+IP=71.159.214.241
+GATEWAY=71.159.214.246
+#NETMASK=255.255.255.248
+# Ref: http://www.rfc-archive.org/getrfc.php?rfc=4632
+PREFIX=29
+BROADCAST=71.159.214.247
+EOF
+sed -i s/eth0description/"""${eth0description}"""/ /etc/sysconfig/network-devices/ifconfig.${eth0name}/ipv4
+echo "=> pwd="`pwd`
+cat ifconfig.${eth0name}/ipv4
+
+#  7.13.3. Creating the /etc/resolv.conf File
+# Domain Name Service (DNS) name resolution to resolve Internet domain names
+# to IP addresses, and vice versa
+cat > /etc/resolv.conf << "EOF"
+# Begin /etc/resolv.conf
+
+# domain {<Your Domain Name>}
+# nameserver <IP address of your primary nameserver>
+# nameserver <IP address of your secondary nameserver>
+
+# NOTE: The information below is from the setup on fc5.adaept.com
+# and could be edited for automation with variables and sed
+
+search sbcglobal.net
+nameserver 68.94.156.1
+nameserver 68.94.157.1
+
+# End /etc/resolv.conf
+EOF
+cat /etc/resolv.conf
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> /lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

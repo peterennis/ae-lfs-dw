@@ -1,0 +1,47 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source ~/lfs-scripts/aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo ________________________________________________________________________________
+echo ${0}		# $(%0)	# alternative form is `%0` and $0
+DateAndTime=$(date +%Y_%m_%d_%T)
+# NOTE: Use logSBU.start
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> ~/lfs-scripts/logSBU.start
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ Keep same profile so that \${LFS} is remembered and run the commands as root:
+echo =ae{ \(when sudo configured for lfs use sudo command\)
+echo =ae{ "        "sudo mkdir -v \${LFS}/sources
+echo =ae{ "        "sudo chmod -v a+wt \${LFS}/sources
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+echo "=> "${0}" "`exec env`
+dir=${LFS}/sources
+echo "=> "dir=${dir}
+if [[ -w ${dir} ]] ; then
+        echo "=> The directory "${dir}" is writable."
+fi
+if [[ -k ${dir} ]] ; then
+        echo "=> The directory "${dir}" is sticky."
+fi
+if [[ -d ${dir} ]] ; then
+        echo "=> The directory "${dir}" exists."
+        echo "=> The breakpoint is included because ${dir} exists."
+	echo "=>DONE "${0}
+	echo
+        exit
+fi
+
+sudo mkdir -v ${LFS}/sources
+echo "    " completed: sudo mkdir \${LFS}/sources
+sudo chmod -v a+wt ${LFS}/sources
+echo "    " completed: sudo chmod a+wt \${LFS}/sources
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> ~/lfs-scripts/logSBU.start
+echo "=>DONE "${0}
+echo

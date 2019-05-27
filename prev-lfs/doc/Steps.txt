@@ -1,0 +1,9 @@
+20140917:corinennis - Get Style Guide to version 1.0 - in progress
+20140917:corinennis - Learn sed, grep, and awk - to do
+20140917:corinennis - Read Preface and Introduction - to do
+20140917:corinennis - Complete the Vim tutor - in progress
+
+Key:
+Complete
+In progress
+To do

@@ -1,0 +1,73 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+cd ${LFS}/lfs-scripts
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> ${LFS}/lfs-logs/logSBU
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ IMPORTANT
+echo =ae{ Before continuing, be aware of the name of the working platform,
+echo =ae{ often referred to as the target triplet. Many times, the target triplet
+echo =ae{ will probably be i686-pc-linux-gnu. A simple way to determine the name
+echo =ae{ of the target triplet is to run the config.guess script that comes with
+echo =ae{ the source for many packages. Unpack the Binutils sources and run the script:
+echo =ae{ "        "./config.guess and note the output. 
+echo =ae{ 
+echo =ae{ Check one last time that the \${LFS} environment variable is set up properly:
+echo =ae{
+echo =ae{ To determine the name the name of the dynamic linker 
+echo =ae{ inspect a random binary from the host system by running:
+echo =ae{ "        "readelf -l \<name of binary\> \| grep interpreter
+echo =ae{ and noting the output. The authoritative reference covering all platforms
+echo =ae{ is in the shlib-versions file in the root of the Glibc source tree.
+echo =ae{ 
+echo =ae{ To illustrate the current search paths and their order:
+echo =ae{ "        "ld --verbose \| grep SEARCH
+echo =ae{ It shows which files are linked by ld by compiling a dummy program and 
+echo =ae{ passing the --verbose switch to the linker.
+echo =ae{ 
+echo =ae{ To show all the files successfully opened during the linking:
+echo =ae{ "        "gcc dummy.c -Wl,--verbose 2\>\&1 \| grep succeeded
+echo =ae{ 
+echo =ae{ To find out which standard linker gcc will use:
+echo =ae{ "        "gcc -print-prog-name=ld
+echo =ae{
+echo =ae{ Detailed information can be obtained from gcc by passing it the -v
+echo =ae{ command line option while compiling a dummy program:
+echo =ae{ "        "gcc -v dummy.c
+echo =ae{ This shows detailed information about the preprocessor, compilation,
+echo =ae{ and assembly stages, including gcc\'s included search paths and their order.
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+echo "=> "${0}" "`exec env`
+echo "=> echo \\\${LFS}="\${LFS}
+echo "\${LFS}="${LFS}
+echo "=> readelf -l /bin/rm | grep interpreter"
+readelf -l /bin/rm | grep interpreter
+echo "=> ld --verbose | grep SEARCH"
+ld --verbose | grep SEARCH
+echo "=> echo 'main(){}' > dummy.c"
+echo "=> gcc dummy.c -Wl,--verbose 2>&1 | grep succeeded"
+echo 'main(){}' > dummy.c
+gcc dummy.c -Wl,--verbose 2>&1 | grep succeeded
+echo "=> gcc -print-prog-name=ld"
+gcc -print-prog-name=ld
+echo "=> gcc -v dummy.c"
+echo 'main(){}' > dummy.c
+gcc -v dummy.c
+rm dummy.c
+rm a.out
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> ${LFS}/lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

@@ -1,0 +1,10 @@
+# We need files to have unix line endings (just lf) so
+# Normalise endings to LF
+
+*.txt          eol=lf
+*.start        eol=lf
+*.sh           eol=lf
+README.MD      eol=lf
+.gitignore     eol=lf
+.gitattributes eol=lf
+

@@ -1,0 +1,90 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+cd /sources
+echo "=> pwd="`pwd`
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> /lfs-logs/logSBU
+
+# Set variables for the package name and type
+PkgName=shadow-4.0.15
+PkgType=bz2
+echo ${PkgName}" "${PkgType}
+
+# unpack
+if [[ "${PkgType}" == "gz" ]] ; then
+	gunzip ${PkgName}.tar.gz
+	tar -xvf ${PkgName}.tar
+elif [[ "${PkgType}" == "bz2" ]] ; then
+	bzip2 -cd ${PkgName}.tar.bz2 | tar xvf -
+fi
+
+# Configure and install
+cd ${PkgName}
+echo "=> pwd="`pwd`
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+./configure --libdir=/lib --enable-shared --without-selinux
+# Disable the installation of the groups program and its man page, as Coreutils provides
+# a better version:
+sed -i 's/groups$(EXEEXT) //' src/Makefile
+find man -name Makefile -exec sed -i '/groups/d' {} \;
+# Disable the installation of Chinese and Korean manual pages,
+# since Man-DB cannot format them properly:
+sed -i -e 's/ ko//' -e 's/ zh_CN zh_TW//' man/Makefile
+# Shadow supplies other manual pages in a UTF-8 encoding. Man-DB can display these in the
+# recommended encodings by using the convert-mans script which we installed.
+for i in de es fi fr id it pt_BR; do
+	convert-mans UTF-8 ISO-8859-1 man/${i}/*.?
+done
+for i in cs hu pl; do
+	convert-mans UTF-8 ISO-8859-2 man/${i}/*.?
+done
+convert-mans UTF-8 EUC-JP man/ja/*.?
+convert-mans UTF-8 KOI8-R man/ru/*.?
+convert-mans UTF-8 ISO-8859-9 man/tr/*.?
+make
+# This package does not come with a test suite
+make install
+# Shadow uses two files to configure authentication settings for the system.
+# Install these two configuration files:
+cp -v etc/{limits,login.access} /etc
+# Instead of using the default crypt method, use the more secure MD5 method of password encryption, which also allows passwords longer than 8 characters. It is also necessary to change the obsolete /var/spool/mail location for user mailboxes that Shadow uses by default to the /var/mail location used currently. Both of these can be accomplished by changing the relevant configuration file while copying it to its destination:
+sed -e's@#MD5_CRYPT_ENAB.no@MD5_CRYPT_ENAB yes@' \
+	-e 's@/var/spool/mail@/var/mail@' \
+	etc/login.defs > /etc/login.defs
+# Move a misplaced program to its proper location:
+mv -v /usr/bin/passwd /bin
+# Move Shadow's libraries to more appropriate locations:
+mv -v /lib/libshadow.*a /usr/lib
+rm -v /lib/libshadow.so
+ln -sfv ../../lib/libshadow.so.0 /usr/lib/libshadow.so
+# The -D option of the useradd program requires the /etc/default directory for it to work properly:
+mkdir -pv /etc/default
+# To enable shadowed passwords, run the following command:
+pwconv
+# To enable shadowed group passwords, run:
+grpconv
+# Choose a password for user root and set it by running:
+###passwd root
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+
+# Remove the extracted source files and the compile directory
+echo
+cd /sources
+echo "=> pwd="`pwd`
+rm -rf ${PkgName}
+echo "=> Removed directory "${PkgName}
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> /lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

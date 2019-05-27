@@ -1,0 +1,53 @@
+#!/tools/bin/bash
+# The proper way to start a bash script
+
+cd ${LFS}/lfs-scripts
+echo "=> pwd="`pwd`
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> ${LFS}/lfs-logs/logSBU
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ The \${LFS} variable must be exported to be visible to the subshells
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+LFS=/mnt/lfs
+export LFS
+echo "=> \${LFS}="${LFS}
+
+if [[ ${#} -eq 2 ]] ; then
+        echo "The command line contains $# arguments"
+else
+        echo $(Usage /dev/\<xxx\> 1\|2)
+        exit 1
+fi
+
+echo "=> "${0}"    "${1}"    "${2}
+if [[ ${2} -ne 1 ]] && [[ ${2} -ne 2 ]] ; then
+        echo "=> The second parameter indicates 1 or 2 pass compiling."
+        echo "=> Use 1 or 2."
+        exit 1
+fi
+
+# Make sure root owns all the files in /tools
+./5.32.Changing_Ownership
+./6.02.Preparing_Virtual_Kernel_File_Systems ${1} ${2}
+
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+sudo chroot "${LFS}" /tools/bin/env -i \
+    HOME=/root TERM="${TERM}" PS1='\u:\w\$ ' \
+    PATH=/bin:/usr/bin:/sbin:/usr/sbin:/tools/bin \
+    /tools/bin/bash --login +h
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> ${LFS}/lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

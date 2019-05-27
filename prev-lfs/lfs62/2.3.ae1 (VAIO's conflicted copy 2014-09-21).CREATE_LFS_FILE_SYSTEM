@@ -1,0 +1,126 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source ~/lfs-scripts/aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+# NOTE: Use logSBU.start
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> ~/lfs-scripts/logSBU.start
+
+
+if [[ ${#} -eq 2 ]] ; then
+        echo "The command line contains ${#} arguments"
+else
+        echo $(Usage /dev/\<xxx\> 1\|2)
+        exit 1
+fi
+
+echo "=> "${0}"    "${1}"    "${2}
+if [[ ${2} -ne 1 ]] && [[ ${2} -ne 2 ]] ; then
+        echo "=> The second parameter indicates 1 or 2 pass compiling."
+        echo "=> Use 1 or 2."
+        exit 1
+fi
+
+PkgName=e2fsprogs-1.39
+PkgType=bz2
+echo ${PkgName}" "${PkgType}
+
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ "        "cd /tmp
+echo =ae{ "        "tar -xjvf /path/to/sources/${PkgName}.tar.bz2
+echo =ae{ "        "cd ${PkgName}
+echo =ae{ "        "mkdir -v build
+echo =ae{ "        "cd build
+echo =ae{ "        "../configure
+echo =ae{ NOTE that we intentionally don\'t \'make install\' here!
+echo =ae{ "        "make
+echo =ae{ "        "./misc/mke2fs -jv /dev/\<xxx\>
+echo =ae{ "        "cd /tmp
+echo =ae{ "        "rm -rfv ${PkgName}
+echo =ae{ "        "rm build
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+# Ref: http://www.troubleshooters.com/linux/quickhacks.htm
+# Ref: http://www.iwu.edu/~unixhelp/abs-guide/index.html
+dir="${LFS}"
+echo "=> \${dir}="${dir}
+echo "=> Testing if \${LFS} is NULL"
+if [[ -z "${dir}" ]] ; then
+	echo "=> \${LFS} is NULL."
+	DateAndTime=$(date +%Y_%m_%d_%T)
+	echo ${DateAndTime}" "${0}" End $(pwd)" >> ~/lfs-scripts/logSBU.start
+	echo "=>DONE "${0}
+	echo
+	exit
+fi
+echo "=> \${LFS}="${dir}
+
+if [[ -d "${dir}" ]] ; then
+	echo "=> The directory "${dir}" exists."
+	echo "=> The breakpoint is included to prevent accidentally formatting $LFS."
+	DateAndTime=$(date +%Y_%m_%d_%T)
+	echo ${DateAndTime}" "${0}" End $(pwd)" >> ~/lfs-scripts/logSBU.start
+	echo "=>DONE "${0}
+	echo
+	exit
+fi
+
+PartitionName=${1}
+echo "=> "PartitionName=${PartitionName}
+echo
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+sudo /sbin/debugfs -R feature ${PartitionName}
+echo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+echo
+
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ Using sudo /sbin/fdisk -1 to show the disk partitions
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+sudo /sbin/fdisk -l
+
+echo
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ Using df -h to show the filesystem
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+df -h
+echo
+
+currentdir=$(pwd)
+tmpdir=/tmp
+echo "=> \${currentdir} is ${currentdir}"
+echo "=> \${tmpdir} is ${tmpdir}"
+if [[ "${currentdir}" != "${tmpdir}" ]]
+then
+        echo "WARNING: Not in the tmp dir."
+	DateAndTime=$(date +%Y_%m_%d_%T)
+	echo ${DateAndTime}" "${0}" End $(pwd)" >> ~/lfs-scripts/logSBU.start
+	echo "=>DONE "${0}
+        echo
+        exit
+fi
+
+cd /tmp
+cp ~/lfs/sources/${PkgName}.tar.bz2 .
+tar -xjvf ${PkgName}.tar.bz2
+cd ${PkgName}
+mkdir -v build
+cd build
+../configure
+make
+sudo ./misc/mke2fs -jv ${PartitionName}
+cd /tmp
+rm -rfv ${PkgName}
+rm ${PkgName}
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> ~/lfs-scripts/logSBU.start
+echo "=>DONE "${0}
+echo

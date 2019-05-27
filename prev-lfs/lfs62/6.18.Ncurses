@@ -1,0 +1,83 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+cd /sources
+echo "=> pwd="`pwd`
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> /lfs-logs/logSBU
+
+# Set variables for the package name and type
+PkgName=ncurses-5.5
+PkgType=gz
+echo ${PkgName}" "${PkgType}
+
+# unpack
+if [[ "${PkgType}" == "gz" ]] ; then
+        gzip -cd ${PkgName}.tar.gz | tar xvf -
+elif [[ "${PkgType}" == "bz2" ]] ; then
+	bzip2 -cd ${PkgName}.tar.bz2 | tar xvf -
+fi
+
+# Configure and install
+cd ${PkgName}
+echo "=> pwd="`pwd`
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+patch -Np1 -i ../${PkgName}-fixes-1.patch
+./configure --prefix=/usr --with-shared --without-debug --enable-widec
+make
+# This package does not come with a test suite.
+make install
+chmod -v 755 /usr/lib/*.5.5
+chmod -v 644 /usr/lib/libncurses++w.a
+mv -v /usr/lib/libncursesw.so.5* /lib
+ln -sfv ../../lib/libncursesw.so.5 /usr/lib/libncursesw.so
+# Many applications still expect the linker to be able to find non-wide-character Ncurses libraries.
+# Trick such applications into linking with wide-character libraries by means of symlinks 
+# and linker scripts:
+for lib in curses ncurses form panel menu ; do \
+    rm -vf /usr/lib/lib${lib}.so ; \
+    echo "INPUT(-l${lib}w)" >/usr/lib/lib${lib}.so ; \
+    ln -sfv lib${lib}w.a /usr/lib/lib${lib}.a ; \
+done &&
+ln -sfv libncurses++w.a /usr/lib/libncurses++.a
+# Finally, make sure that old applications that look for -lcurses at build time are still buildable:
+echo "INPUT(-lncursesw)" >/usr/lib/libcursesw.so &&
+ln -sfv libncurses.so /usr/lib/libcurses.so &&
+ln -sfv libncursesw.a /usr/lib/libcursesw.a &&
+ln -sfv libncurses.a /usr/lib/libcurses.a
+#
+#Note
+#
+#The instructions above don't create non-wide-character Ncurses libraries since no 
+#package installed by compiling from sources would link against them at runtime.
+#If you must have such libraries because of some binary-only application,
+#build them with the following commands:
+#
+#make distclean &&
+#./configure --prefix=/usr --with-shared --without-normal \
+#  --without-debug --without-cxx-binding &&
+#make sources libs &&
+#cp -av lib/lib*.so.5* /usr/lib
+#
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+
+# Remove the extracted source files and the compile directory
+echo
+cd /sources
+echo "=> pwd="`pwd`
+rm -rf ${PkgName}
+echo "=> Removed directory "${PkgName}
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> /lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

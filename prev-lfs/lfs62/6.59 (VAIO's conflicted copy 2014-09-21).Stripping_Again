@@ -1,0 +1,36 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd) - OFF" >> /lfs-logs/logSBU
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ The files are intentionally NOT stripped! 
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+cd /
+echo `pwd`
+
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+## logout
+## sudo chroot ${LFS} /tools/bin/env -i \
+## 	HOME=/root TERM=${TERM} PS1='\u:\w\$ ' \
+## 	PATH=/bin:/usr/bin:/sbin:/usr/sbin \
+## 	/tools/bin/bash --login
+# Now the binaries and libraries can be safely stripped:
+## /tools/bin/find /{,usr/}{bin,lib,sbin} -type f \
+## 	-exec /tools/bin/strip --strip-debug '{}' ';'
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> /lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

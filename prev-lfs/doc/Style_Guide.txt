@@ -1,0 +1,51 @@
+Documentation:
+- Write in the third person point of view
+- Write with a positive tone unless it is important: "Write in.." not "Do not write.."
+- Stay consistent to current project guidelines
+- Use the document versioning
+- Use full form words unless stated otherwise: Common abbreviations are allowed
+- Use three asterisks for exceptions: "***Exception"
+
+File names:
+- Separate words with underscores: do NOT use spaces or periods
+- Organize files in folders by chapter
+- Prepend files with two underscores if it needs to be at the top of the folder
+- Start each file with a capital letter: ***README and changelog are the exception
+- Keep file extensions lowercase
+- Use proper grammar capitalization rules
+- ***Files originating from a different source are exceptions to the rules
+
+Folder names:
+- Write folder names all lowercase
+- Keep it to one word if possible
+
+Git commits/logs:
+- Write commits in the imperative: "Fix bug" not "Fixed bug"
+- Write title and summary lines under 50 characters
+- Write line descriptions under 72 characters
+- Separate paragraphs with blank lines
+- Use a hyphen or an asterisk for bullet points
+- Use hanging indents on bullet points
+
+Authors:
+Corin Ennis
+Peter Ennis
+
+Version:
+0.1 - 20140917
+
+Document Versioning Guidelines:
+major.minor[.maintenance]
+
+Major - set as final. no more large changes will be made until the next major version
+Minor - there is a new category addition or there are two or more additions to a single category
+Maintenance - used to fix typos, clarify definition and meanings
+
+
+References:
+http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html
+http://ablogaboutcode.com/2011/03/23/proper-git-commit-messages-and-an-elegant-git-history/
+http://chris.beams.io/posts/git-commit/
+
+To Do:
+Rewrite in markdown format.

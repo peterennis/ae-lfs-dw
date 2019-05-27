@@ -1,0 +1,51 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+cd ${LFS}/lfs-scripts
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo ${0} 
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> ${LFS}/lfs-logs/logSBU
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ Create the required directory by running the following as root \(sudo\):
+echo =ae{ "        "sudo mkdir -v \${LFS}/tools
+echo =ae{ The next step is to create a /tools symlink on the host system.
+echo =ae{ This will point to the newly-created directory on the LFS partition.
+echo =ae{ Run this command as root:
+echo =ae{ "        "sudo ln -sv \${LFS}/tools /
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+echo "=> "${0}" "`exec env`
+dir="${LFS}/tools"
+dirlink=/tools
+echo "=> "dir=${dir}
+if [[ -d ${dir} ]] ; then
+        echo "=> The directory "${dir}" exists."
+        echo "=> The breakpoint is included because the directory exists."
+	ls -l ${dir}
+else
+	sudo mkdir -v ${LFS}/tools
+fi
+
+if [[ -L ${dirlink} ]] ; then
+        echo "=> The link "${dirlink}" exists."
+        echo "=> The breakpoint is included because the directory and link exist."
+	ls -l /tools
+else
+	sudo ln -sv ${LFS}/tools /
+fi
+
+# sudo mkdir -v ${LFS}/tools
+# sudo ln -sv ${LFS}/tools /
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> ${LFS}/lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

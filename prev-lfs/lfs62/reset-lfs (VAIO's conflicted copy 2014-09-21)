@@ -1,0 +1,210 @@
+RESETTING LFS FOR COMPLETE BUILD
+================================
+
+When in Chapter 5:
+------------------
+lfs:~/lfs-scripts$ df -h
+Filesystem            Size  Used Avail Use% Mounted on
+/dev/hda3              12G  4.0G  6.8G  38% /
+/dev/hda1              99M   13M   82M  14% /boot
+tmpfs                 252M     0  252M   0% /dev/shm
+/dev/hdb2             9.5G  904M  8.1G  10% /home
+/dev/hdb1             9.7G  567M  8.6G   7% /mnt/lfs
+/dev/hdb3              18G  386M   16G   3% /opt
+
+lfs:~/lfs-scripts$ sudo umount /dev/hdb1
+umount: /mnt/lfs: device is busy
+umount: /mnt/lfs: device is busy
+lfs:~/lfs-scripts$ sudo umount -l /dev/hdb1
+lfs:~/lfs-scripts$ df -h
+Filesystem            Size  Used Avail Use% Mounted on
+/dev/hda3              12G  4.0G  6.8G  38% /
+/dev/hda1              99M   13M   82M  14% /boot
+tmpfs                 252M     0  252M   0% /dev/shm
+/dev/hdb2             9.5G  904M  8.1G  10% /home
+/dev/hdb3              18G  386M   16G   3% /opt
+lfs:~/lfs-scripts$ cd /mnt
+lfs:/mnt$ ls
+cdrom  lfs
+lfs:/mnt$ ls -l
+total 12
+drwxr-xr-x 2 root root 4096 Apr 18 03:36 cdrom
+drwxr-xr-x 2 root root 4096 Jun 29 17:19 lfs
+
+lfs:/mnt$ sudo rm -rf lfs
+lfs:/mnt$ ls -l
+total 8
+drwxr-xr-x 2 root root 4096 Apr 18 03:36 cdrom
+lfs:/mnt$
+
+lfs:/mnt$ sudo mkdir lfs
+lfs:/mnt$ ls -l
+total 12
+drwxr-xr-x 2 root root 4096 Apr 18 03:36 cdrom
+drwxr-xr-x 2 root root 4096 Jun 30 17:57 lfs
+lfs:/mnt$
+
+NOW RECOMPILE LFS
+=================
+
+lfs:~/lfs-scripts$ ./_Ch1234_Setup /dev/hdb1
+...
+lfs:~/lfs-scripts$ ./_Ch5_Build
+...
+
+
+CHECKING THE RUNNING SHELLS
+===========================
+lfs:~$ df -h
+Filesystem            Size  Used Avail Use% Mounted on
+/dev/hda2             9.7G  3.2G  6.1G  35% /
+/dev/hda1              99M   42M   52M  45% /boot
+none                  252M     0  252M   0% /dev/shm
+/dev/hda5             8.2G  2.5G  5.3G  33% /usr
+df: `/mnt/lfs/dev/shm': No such file or directory
+sysfs                 4.9G  562M  4.1G  13% /mnt/lfs/sys
+/dev/hdc1             4.9G  562M  4.1G  13% /mnt/lfs
+lfs:~$ ps -a
+  PID TTY          TIME CMD
+26317 pts/0    00:00:00 su
+26319 pts/0    00:00:00 bash
+26350 pts/0    00:00:00 su
+26351 pts/0    00:00:00 bash
+26383 pts/0    00:00:00 _Ch1234_Setup
+26420 pts/0    00:00:00 bash
+31992 pts/0    00:00:00 _Ch1234_Setup
+32024 pts/0    00:00:00 bash
+ 2290 pts/0    00:00:00 _Ch1234_Setup
+ 2324 pts/0    00:00:00 bash
+ 5146 pts/0    00:00:00 ps
+lfs:~$ exit
+=>DONE ./_Ch1234_Setup
+
+Exit Status $?=0
+
+        So long and thanks for all the foo!
+
+lfs:~/lfs-scripts$ ps -a
+  PID TTY          TIME CMD
+26317 pts/0    00:00:00 su
+26319 pts/0    00:00:00 bash
+26350 pts/0    00:00:00 su
+26351 pts/0    00:00:00 bash
+26383 pts/0    00:00:00 _Ch1234_Setup
+26420 pts/0    00:00:00 bash
+31992 pts/0    00:00:00 _Ch1234_Setup
+32024 pts/0    00:00:00 bash
+ 5148 pts/0    00:00:00 ps
+lfs:~/lfs-scripts$ exit
+=>DONE ./_Ch1234_Setup
+
+Exit Status $?=0
+
+        So long and thanks for all the foo!
+
+lfs:~/lfs-scripts$ ps -a
+  PID TTY          TIME CMD
+26317 pts/0    00:00:00 su
+26319 pts/0    00:00:00 bash
+26350 pts/0    00:00:00 su
+26351 pts/0    00:00:00 bash
+26383 pts/0    00:00:00 _Ch1234_Setup
+26420 pts/0    00:00:00 bash
+ 5150 pts/0    00:00:00 ps
+lfs:~/lfs-scripts$ exit
+Exit Status $?=0
+
+        So long and thanks for all the foo!
+
+lfs:~/lfs-scripts$ ps -a
+  PID TTY          TIME CMD
+26317 pts/0    00:00:00 su
+26319 pts/0    00:00:00 bash
+26350 pts/0    00:00:00 su
+26351 pts/0    00:00:00 bash
+ 5153 pts/0    00:00:00 ps
+lfs:~/lfs-scripts$ df -f
+df: invalid option -- f
+Try `df --help' for more information.
+lfs:~/lfs-scripts$ df -h
+Filesystem            Size  Used Avail Use% Mounted on
+/dev/hda2             9.7G  3.2G  6.1G  35% /
+/dev/hda1              99M   42M   52M  45% /boot
+none                  252M     0  252M   0% /dev/shm
+/dev/hda5             8.2G  2.5G  5.3G  33% /usr
+df: `/mnt/lfs/dev/shm': No such file or directory
+sysfs                 4.9G  562M  4.1G  13% /mnt/lfs/sys
+/dev/hdc1             4.9G  562M  4.1G  13% /mnt/lfs
+lfs:~/lfs-scripts$ exit
+[root@lfs lfs]# ps -a
+  PID TTY          TIME CMD
+26317 pts/0    00:00:00 su
+26319 pts/0    00:00:00 bash
+ 5158 pts/0    00:00:00 ps
+[root@lfs lfs]# exit
+[developer@lfs ~]$ ps -a
+  PID TTY          TIME CMD
+ 5160 pts/0    00:00:00 ps
+[developer@lfs ~]$ df -h
+Filesystem            Size  Used Avail Use% Mounted on
+/dev/hda2             9.7G  3.2G  6.1G  35% /
+/dev/hda1              99M   42M   52M  45% /boot
+none                  252M     0  252M   0% /dev/shm
+/dev/hda5             8.2G  2.5G  5.3G  33% /usr
+/dev                  4.9G  562M  4.1G  13% /mnt/lfs/dev
+df: `/mnt/lfs/dev/shm': No such file or directory
+proc                  4.9G  562M  4.1G  13% /mnt/lfs/sys
+sysfs                 4.9G  562M  4.1G  13% /mnt/lfs/sys
+/dev/hdc1             4.9G  562M  4.1G  13% /mnt/lfs
+[developer@lfs ~]$ sudo umount /dev/hdc1
+[developer@lfs ~]$ df -h
+Filesystem            Size  Used Avail Use% Mounted on
+/dev/hda2             9.7G  3.2G  6.1G  35% /
+/dev/hda1              99M   42M   52M  45% /boot
+none                  252M     0  252M   0% /dev/shm
+/dev/hda5             8.2G  2.5G  5.3G  33% /usr
+df: `/mnt/lfs/dev': No such file or directory
+df: `/mnt/lfs/dev/shm': No such file or directory
+df: `/mnt/lfs/sys': No such file or directory
+df: `/mnt/lfs/sys': No such file or directory
+[developer@lfs ~]$
+
+CLEANING UP STRAY MOUNTS AFTER LAZY UMOUNT
+==========================================
+lfs:~$ ps -a
+  PID TTY          TIME CMD
+ 5182 pts/0    00:00:00 su
+ 5185 pts/0    00:00:00 bash
+ 5207 pts/0    00:00:00 ps
+lfs:~$ df -h
+Filesystem            Size  Used Avail Use% Mounted on
+/dev/hda2             9.7G  3.2G  6.1G  35% /
+/dev/hda1              99M   42M   52M  45% /boot
+none                  252M     0  252M   0% /dev/shm
+/dev/hda5             8.2G  2.5G  5.3G  33% /usr
+df: `/mnt/lfs/dev/shm': No such file or directory
+df: `/mnt/lfs/sys': No such file or directory
+lfs:~$ sudo umount /mnt/lfs/dev/shm
+umount: shm: not found
+umount: shm: not found
+lfs:~$ df -h
+Filesystem            Size  Used Avail Use% Mounted on
+/dev/hda2             9.7G  3.2G  6.1G  35% /
+/dev/hda1              99M   42M   52M  45% /boot
+none                  252M     0  252M   0% /dev/shm
+/dev/hda5             8.2G  2.5G  5.3G  33% /usr
+df: `/mnt/lfs/sys': No such file or directory
+lfs:~$ sudo umount /mnt/lfs/sys
+umount: sysfs: not found
+umount: proc: not found
+umount: sysfs: not found
+lfs:~$ df -h
+Filesystem            Size  Used Avail Use% Mounted on
+/dev/hda2             9.7G  3.2G  6.1G  35% /
+/dev/hda1              99M   42M   52M  45% /boot
+none                  252M     0  252M   0% /dev/shm
+/dev/hda5             8.2G  2.5G  5.3G  33% /usr
+lfs:~$
+
+
+

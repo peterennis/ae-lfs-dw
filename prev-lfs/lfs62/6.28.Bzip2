@@ -1,0 +1,63 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+cd /sources
+echo "=> pwd="`pwd`
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> /lfs-logs/logSBU
+
+# Set variables for the package name and type
+PkgName=bzip2-1.0.3
+PkgType=gz
+echo ${PkgName}" "${PkgType}
+
+# unpack
+if [[ "${PkgType}" == "gz" ]] ; then
+        gzip -cd ${PkgName}.tar.gz | tar xvf -
+elif [[ "${PkgType}" == "bz2" ]] ; then
+	bzip2 -cd ${PkgName}.tar.bz2 | tar xvf -
+fi
+
+# Configure and install
+cd ${PkgName}
+echo "=> pwd="`pwd`
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+patch -Np1 -i ../${PkgName}-install_docs-1.patch
+patch -Np1 -i ../${PkgName}-bzgrep_security-1.patch
+sed -i 's@tempfile -d /tmp -p bz@mktemp -p /tmp@' bzdiff
+make -f Makefile-libbz2_so
+make clean
+make
+# Needed for reinstalling:
+rm -vf /usr/bin/bz*
+make install
+# Install the shared bzip2 binary into the /bin directory,
+# make some necessary symbolic links, and clean up:
+cp -v bzip2-shared /bin/bzip2
+cp -av libbz2.so* /lib
+ln -svf ../../lib/libbz2.so.1.0 /usr/lib/libbz2.so
+rm -v /usr/bin/{bunzip2,bzcat,bzip2}
+ln -svf bzip2 /bin/bunzip2
+ln -svf bzip2 /bin/bzcat
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+
+# Remove the extracted source files and the compile directory
+echo
+cd /sources
+echo "=> pwd="`pwd`
+rm -rf ${PkgName}
+echo "=> Removed directory "${PkgName}
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> /lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

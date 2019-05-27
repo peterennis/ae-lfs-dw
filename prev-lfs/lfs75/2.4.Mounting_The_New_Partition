@@ -1,0 +1,93 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+trap simple_error ERR
+
+set +x
+source ~+/SCRIPT_LIBRARY
+set -x
+
+echo ${YELLOW}"=> \$LFSVER="${LFSVER}${OFF}
+
+green_line
+echo " START "${0}
+green_line
+echo ${OFF}
+set -x
+
+# Output the script echo messages in yellow
+echo ${YELLOW}"=> "${0}${OFF}
+DateAndTime=$(date +%Y_%m_%d_%T)
+# NOTE: Use logSBU.start
+echo ${YELLOW}"=> "${OFF}
+echo ${DateAndTime}" "${0}" Start $(PWD)" >> ~+/logSBU.start
+echo
+
+if [ ${#} -eq 2 ] ; then
+        echo ${YELLOW}"=> The command line contains $# arguments"${OFF}
+else
+        echo ${YELLOW}"=> "$(Usage /dev/\<xxx\> 1\|2)${OFF}
+        exit 1
+fi
+
+echo ${YELLOW}"=> "${0}"    "${1}"    "${2}${OFF}
+if [ ${2} -ne 1 ] && [ ${2} -ne 2 ] ; then
+        echo ${YELLOW}"=> The second parameter indicates 1 or 2 pass compiling."${OFF}
+        echo ${YELLOW}"=> Use 1 or 2."${OFF}
+        exit 1
+fi
+
+PartitionName=${1}
+echo ${YELLOW}"=> "${PartitionName}${OFF}				# e.g. fc5 /dev/hdb1
+
+set +x
+green_line
+echo " Choose a mount point. Assign it to the LFS environment variable by running:"
+echo "            export LFS=/mnt/lfs"
+echo " Next, create the mount point and mount the LFS file system by running:"
+echo "            sudo mkdir -pv \${LFS}"
+echo "            sudo mount -v -t ext4 /dev/<xxx> \${LFS}"
+echo " Replace <xxx> with the designation of the LFS partition."
+echo " If using multiple partitions for LFS (e.g., one for / and another for /usr),"
+echo " mount them using:"
+echo "            sudo mkdir -pv \${LFS}"
+echo "            sudo mount -v -t ext4 /dev/<xxx> \${LFS}"
+echo "            sudo mkdir -v \${LFS}/usr"
+echo "            sudo mount -v -t ext4 /dev/<yyy> \${LFS}/usr"
+echo " If you are using a swap partition, ensure that it is enabled using the"
+echo " swapon command:"
+echo "            /sbin/swapon -v /dev/<zzz>"
+green_line
+echo " Test if /mnt/lfs is mounted"
+echo " Ref: http://www.linux.com/guides/abs-guide/string-manipulation.shtml"
+green_line
+echo ${OFF}
+set -x
+
+snip_start
+#echo "=> "${0}" "`exec env`
+#export LFS=/mnt/lfs
+#sudo mkdir -pv ${LFS}
+#lfsmounted="${PartitionName} on /mnt/lfs type ext4 (rw)"
+#echo "=> \${lfsmounted}="${lfsmounted}
+#lfsmountedtest=`sudo mount`
+#echo "=> \${lfsmountedtest}="${lfsmountedtest}
+## http://www.tldp.net/LDP/abs/html/testconstructs.html
+#if echo "${lfsmountedtest}" | grep -q "${lfsmounted}" ; then
+#	# The "-q" option to grep suppresses output.
+#	echo "=> \"${lfsmounted}\" found in sudo mount"
+#	echo "=> lfs is mounted on ${LFS}"
+#else
+#        echo "=> \"${lfsmounted}\" not found in sudo mount"
+#        echo "=> mounting lfs on ${LFS}"
+#	sudo mount -v -t ext4 ${PartitionName} ${LFS}
+#fi
+snip_end
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${YELLOW}
+echo ${DateAndTime}" "${0}" End $(PWD)" >> ~+/logSBU.start
+echo ${YELLOW}"=> DONE "${0}${OFF}
+echo
+

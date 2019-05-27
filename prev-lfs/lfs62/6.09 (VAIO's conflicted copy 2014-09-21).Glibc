@@ -1,0 +1,126 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+cd /sources
+echo "=> pwd="`pwd`
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> /lfs-logs/logSBU
+
+# Set a variable for the package name
+PkgName=glibc-2.3.6
+SecondaryPkgName=glibc-libidn-2.3.6
+PkgType=bz2
+echo ${PkgName}" "${PkgType}" "${SecondaryPkgName}
+
+# unpack
+if [[ "${PkgType}" == "gz" ]] ; then
+        gunzip ${PkgName}.tar.gz
+        tar -xvf ${PkgName}.tar
+elif [[ "${PkgType}" == "bz2" ]] ; then
+        bzip2 -cd ${PkgName}.tar.bz2 | tar xvf -
+fi
+
+# Configure and install
+cd ${PkgName}
+echo "=> pwd="`pwd`
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+# Unpack the glibc-libidn tarball from within the Glibc source directory:
+tar -xf ../${SecondaryPkgName}.tar.bz2
+patch -Np1 -i ../${PkgName}-linux_types-1.patch
+patch -Np1 -i ../${PkgName}-inotify-1.patch
+sed -i '/vi_VN.TCVN/d' localedata/SUPPORTED
+sed -i \
+'s|libs -o|libs -L/usr/lib -Wl,-dynamic-linker=/lib/ld-linux.so.2 -o|' \
+        scripts/test-installation.pl
+
+mkdir -v ../glibc-build
+cd ../glibc-build
+echo "=> pwd="`pwd`
+../${PkgName}/configure --prefix=/usr \
+    --disable-profile --enable-add-ons \
+    --enable-kernel=2.6.0 --libexecdir=/usr/lib/glibc
+make
+make -k check 2>&1 | tee glibc-check-log
+cp glibc-check-log /lfs-logs
+grep Error glibc-check-log
+touch /etc/ld.so.conf
+make install
+cp -uv ../glibc-2.3.6/sysdeps/unix/sysv/linux/inotify.h \
+    /usr/include/sys
+mkdir -pv /usr/lib/locale
+localedef -i de_DE -f ISO-8859-1 de_DE
+localedef -i de_DE@euro -f ISO-8859-15 de_DE@euro
+localedef -i en_HK -f ISO-8859-1 en_HK
+localedef -i en_PH -f ISO-8859-1 en_PH
+localedef -i en_US -f ISO-8859-1 en_US
+localedef -i en_US -f UTF-8 en_US.UTF-8
+localedef -i es_MX -f ISO-8859-1 es_MX
+localedef -i fa_IR -f UTF-8 fa_IR
+localedef -i fr_FR -f ISO-8859-1 fr_FR
+localedef -i fr_FR@euro -f ISO-8859-15 fr_FR@euro
+localedef -i fr_FR -f UTF-8 fr_FR.UTF-8
+localedef -i it_IT -f ISO-8859-1 it_IT
+localedef -i ja_JP -f EUC-JP ja_JP
+
+make localedata/install-locales
+
+cat > /etc/nsswitch.conf << "EOF"
+# Begin /etc/nsswitch.conf
+
+passwd: files
+group: files
+shadow: files
+
+hosts: files dns
+networks: files
+
+protocols: files
+services: files
+ethers: files
+rpc: files
+
+# End /etc/nsswitch.conf
+EOF
+
+# To determine the local time zone, run the following script:
+#tzselect
+# Use the name of the time zone that the tzselect provided which, for California, is:
+# America/LosAngeles
+
+# Then create the /etc/localtime file by running:
+cp -v --remove-destination /usr/share/zoneinfo/America/Los_Angeles \
+    /etc/localtime
+
+# Create a new file /etc/ld.so.conf by running the following:
+cat > /etc/ld.so.conf << "EOF"
+# Begin /etc/ld.so.conf
+
+/usr/local/lib
+/opt/lib
+
+# End /etc/ld.so.conf
+EOF
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+
+# Remove the extracted source files and the compile directory
+echo
+cd /sources
+echo "=> pwd="`pwd`
+rm -rf ${PkgName}
+echo "=> Removed directory "${PkgName}
+rm -rf glibc-build
+echo "=> Removed directory glibc-build"
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> /lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

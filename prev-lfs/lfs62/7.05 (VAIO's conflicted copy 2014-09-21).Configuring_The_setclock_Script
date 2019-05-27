@@ -1,0 +1,32 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source /lfs-scripts/aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> /lfs-logs/logSBU
+
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+# Ref: http://www.linuxfromscratch.org/hints/downloads/files/time.txt
+# Create a new file /etc/sysconfig/clock by running the following:
+cat > /etc/sysconfig/clock << "EOF"
+# Begin /etc/sysconfig/clock
+
+UTC=1
+
+# End /etc/sysconfig/clock
+EOF
+# Catalog the file for display in the log
+cat /etc/sysconfig/clock
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> /lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

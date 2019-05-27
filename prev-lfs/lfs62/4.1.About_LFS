@@ -1,0 +1,31 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+cd ${LFS}/lfs-scripts
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo ${0} 
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> ${LFS}/lfs-logs/logSBU
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ Make sure the output shows the path to the LFS partition\'s mount point.
+echo =ae{ "        "echo \${LFS}
+echo =ae{ If the output is incorrect, the variable can be set with:
+echo =ae{ "        "export LFS=/path/to/lfs
+echo =ae{ Do not forget to check that \${LFS} is set whenever you leave and reenter
+echo =ae{ the current working environment as when doing a su to root or another user.
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+export LFS=/mnt/lfs
+echo "=> "${0}" "`exec env`
+echo "=> \${LFS}="${LFS}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> ${LFS}/lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

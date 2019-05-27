@@ -1,0 +1,69 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+cd /sources
+echo "=> pwd="`pwd`
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> /lfs-logs/logSBU
+
+# Set variables for the package name and type
+PkgName=coreutils-5.96
+PkgType=bz2
+echo ${PkgName}" "${PkgType}
+
+# unpack
+if [[ "${PkgType}" == "gz" ]] ; then
+	gunzip ${PkgName}.tar.gz
+	tar -xvf ${PkgName}.tar
+elif [[ "${PkgType}" == "bz2" ]] ; then
+	bzip2 -cd ${PkgName}.tar.bz2 | tar xvf -
+fi
+
+# Configure and install
+cd ${PkgName}
+echo "=> pwd="`pwd`
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+patch -Np1 -i ../${PkgName}-uname-1.patch
+patch -Np1 -i ../${PkgName}-suppress_uptime_kill_su-1.patch
+patch -Np1 -i ../${PkgName}-i18n-1.patch
+chmod +x tests/sort/sort-mb-tests
+sed -i 's/_LEN 6/_LEN 20/' src/who.c
+./configure --prefix=/usr
+make
+echo "dummy1:x:1000:" >> /etc/group
+echo "dummy2:x:1001:dummy" >> /etc/group
+echo "dummy:x:1000:1000::/root:/bin/bash" >> /etc/passwd
+make NON_ROOT_USERNAME=dummy check-root
+src/su dummy -c "make RUN_EXPENSIVE_TESTS=yes check"
+sed -i '/dummy/d' /etc/passwd /etc/group
+make install
+mv -v /usr/bin/{cat,chgrp,chmod,chown,cp,date,dd,df,echo} /bin
+cp -pv /usr/bin/mv /bin
+echo "=> CHECK ON REMOVING mv"
+mv -v /usr/bin/{false,hostname,ln,ls,mkdir,mknod,pwd,rm} /bin
+echo "=> env="`env`
+mv -v /usr/bin/{rmdir,stty,sync,true,uname} /bin
+mv -v /usr/bin/chroot /usr/sbin
+mv -v /usr/bin/{head,sleep,nice} /bin
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+
+# Remove the extracted source files and the compile directory
+echo
+cd /sources
+echo "=> pwd="`pwd`
+rm -rf ${PkgName}
+echo "=> Removed directory "${PkgName}
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> /lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

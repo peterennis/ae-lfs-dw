@@ -1,0 +1,76 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+trap simple_error ERR
+
+set +x
+source ~+/SCRIPT_LIBRARY
+set -x
+
+echo ${YELLOW}"=> \$LFSVER="${LFSVER}${OFF}
+
+set +x # Turn off debugging
+# Print green 80 character console line separator with _
+# Ref: http://stackoverflow.com/questions/5799303/print-a-character-repeatedly-in-bash
+echo ${GREEN}
+printf "%0.s_" {1..80}
+echo ${OFF}
+set -x # Turn on debugging
+
+# Output the script echo messages in yellow
+echo ${YELLOW}"=> "${0}${OFF}
+DateAndTime=$(date +%Y_%m_%d_%T)
+# NOTE: Use logSBU.start
+echo ${YELLOW}"=> "${OFF}
+echo ${DateAndTime}" "${0}" Start $(PWD)" >> ~+/logSBU.start
+echo
+
+if [ ${#} -eq 2 ] ; then
+        echo ${YELLOW}"=> The command line contains $# arguments"${OFF}
+else
+        echo ${YELLOW}"=> "$(Usage /dev/\<xxx\> 1\|2)${OFF}
+        exit 1
+fi
+
+echo ${YELLOW}"=> "${0}"    "${1}"    "${2}${OFF}
+if [ ${2} -ne 1 ] && [ ${2} -ne 2 ] ; then
+        echo ${YELLOW}"=> The second parameter indicates 1 or 2 pass compiling."${OFF}
+        echo ${YELLOW}"=> Use 1 or 2."${OFF}
+        exit 1
+fi
+
+PartitionName=${1}
+echo S{YELLOW}"=> "${PartitionName}${OFF}				# e.g. fc5 /dev/hdb1
+
+set +x
+echo ${GREEN}
+printf "%0.s_" {1..80}
+echo "To create an ext3 file system on the LFS partition:"
+echo "        sudo /sbin/mke2fs -jv /dev/<xxx>"
+echo "To check if your host system uses custom enhancements:"
+echo "        sudo /sbin/debugfs -R feature /dev/<xxx>"
+echo "If the output contains features other than:"
+echo "dir_index, filetype, large_file, resize_inode or sparse_super then"
+echo "you should compile the stock E2fsprogs package"
+echo "For adaept /mnt/lfs on the secondary IDE channel:"
+echo "        sudo /sbin/debugfs -R feature /dev/hdc1"
+echo "For www.adaept.com /mnt/lfs:"
+echo "        sudo /sbin/debugfs -R feature /dev/hdb1"
+echo "Refer to the script 2.3.ae1.CREATE_LFS_FILE_SYSTEM for details"
+echo "If a swap partition was created, it will need to be initialized for use"
+echo "by issuing the command below. If you are using an existing swap partition,"
+echo "there is no need to format it."
+echo "        sudo /sbin/mkswap /dev/<yyy>"
+printf "%0.s_" {1..80}
+echo ${OFF}
+set -x
+
+echo ${YELLOW}"=> sudo /sbin/debugfs -R feature "${PartitionName}${OFF}
+#sudo /sbin/debugfs -R feature ${PartitionName}
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${YELLOW}
+echo ${DateAndTime}" "${0}" End $(PWD)" >> ~+/logSBU.start
+echo ${YELLOW}"=> DONE "${0}${OFF}
+echo

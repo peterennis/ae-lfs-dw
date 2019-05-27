@@ -1,0 +1,53 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source ~/lfs-scripts/aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+# NOTE: Create a starting logSBU.start file in the lfs-scripts directory!
+echo ${DateAndTime}" "${0}" Start $(pwd)" > ~/lfs-scripts/logSBU.start
+
+
+if [[ ${#} -eq 2 ]] ; then
+        echo "The command line contains ${#} arguments"
+else
+        echo $(Usage /dev/\<xxx\> 1\|2)
+        exit 1
+fi
+
+echo "=> "${0}"    "${1}"    "${2}
+if [[ ${2} -ne 1 ]] && [[ ${2} -ne 2 ]] ; then
+        echo "=> The second parameter indicates 1 or 2 pass compiling."
+        echo "=> Use 1 or 2."
+        exit 1
+fi
+
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ Build All
+echo =ae{ The \${LFS} variable must be exported to be visible to the subshells
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+LFS=/mnt/lfs
+export LFS
+echo "=> \$LFS="${LFS}
+
+./_Ch1234_Setup ${1} ${2} > ~/lfs-scripts/_Ch1234_Setup.log 2>&1
+mv ~/lfs-scripts/_Ch1234_Setup.log ${LFS}/lfs-logs/_Ch1234_Setup.log
+./_Ch5_Build ${1} ${2} > ${LFS}/lfs-logs/_Ch5_Build.log 2>&1
+./_Ch6_Setup ${1} ${2} > ${LFS}/lfs-logs/_Ch6_Setup.log 2>&1
+### _Ch6_Setup will run _Ch6_Build
+./_Ch7_Setup ${1} ${2} > ${LFS}/lfs-logs/_Ch7_Setup.log 2>&1
+### _Ch7_Setup will run _Ch7_Build
+./_Ch8_Setup ${1} ${2} > ${LFS}/lfs-logs/_Ch8_Setup.log 2>&1
+### _Ch8_Setup will run _Ch8_Build
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> ~/lfs-scripts/logSBU.start
+echo "=>DONE "${0}
+echo

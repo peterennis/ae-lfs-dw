@@ -1,0 +1,230 @@
+---
+31 May 2005
+System building tips
+http://people.redhat.com/davej/hardware-problems.txt
+---
+Configure X
+http://xwinman.org/basics.php
+---
+http://www.openbrick.org/en/Members/tn/thinclient/Howto%20configure%20X%20and%20VNC
+---
+https://www.redhat.com/archives/redhat-list/2000-January/msg02836.html
+
+Type "xhost +localhost" then su to root
+and all will be well. If you do this often, stick it in ~/.xinitrc to
+make it the default.
+---
+hint - put a "set -vx" at the top of each script, which will display 
+the commands as they run.
+---
+configure X from the command line.
+
+/usr/bin/system-config-display
+---
+Escape Character
+ Name
+ Possible Uses
+ 
+\n
+ newline
+ Adding blank lines to text
+ 
+\t
+ tab
+ Inserting horizontal tabs to text
+ 
+\a
+ alert
+ Makes your terminal beep
+ 
+\\
+ backslash
+ Inserts a backslash
+ 
+\f
+ formfeed
+ Sending this to your printer ejects the page
+ 
+[me@linuxbox me]$ echo -e "Words\tseparated\tby\thorizontal\ttabs."
+
+Words separated   by  horizontal  tabs
+---
+22 May 2005
+>> Exists some script to create a LiveCd of the LFS?
+>>
+> 
+> svn co svn://svn.linuxfromscratch.org/livecd/trunk lfs-livecd &&
+> cd lfs-livecd &&
+> make
+
+Actually, for the sake of completeness, I missed a couple of small 
+steps 
+in there... :)
+
+mkdir /mnt/lfs &&
+cd /mnt/lfs &&
+svn co svn://svn.linuxfromscratch.org/livecd/trunk lfs-livecd &&
+cd lfs-livecd &&
+make
+---
+> "IP Variable Missing in
+> /etc/sysconfig/network-devices/ifconfig.eth0/ipv4:Cannot continue"
+
+The problem is exactly what this line says. The variable IP wasn't set
+in
+the file /etc/sysconfig/network-devices/ifconfig.eth0/ipv4
+
+So. Open up that file (in vim or nano, or whatever you prefer as an
+editor) and make sure there's a line like "IP=[your ip addres]".
+
+Then run:
+/etc/RC.D/init.d/network restart
+---
+> just to be precise, then, it *is* possible that, as one goes from one
+> test release to the next or a test release to the final release, one
+> can find a package that's been reverted to an earlier version due to
+> unfixable issues?
+
+Yes. I have evolution in rawhide reverted to earlier version, I believe
+prior to FC2 release.
+
+btw - I have done the "beta -> stable" thing in the past with little
+problem - of course that doesn't mean there won't be one.
+
+Stop updating about two weeks before final release - and when final
+release comes out, remove the package that provides /etc/release and
+install the new one from final. Check the /etc/yum.repos.d/ directory -
+make sure everything is pointing to stable.
+
+then -
+
+rpm -qa |sort > rpm.initial
+yum update
+rpm -qa |sort > rpm.final
+
+compare rpm.initial and rpm.final looking for packages that remained
+the
+same - and see if they are newer than what is on official.
+
+This is of course totally unsupported, as mentioned.
+It's what I'm planning to do with my headless box currently running
+rawhide since that is just the easiest way.
+---
+> I have FC4T2 installed on a machine.  Do I need to download and
+
+  You may have to install fedora-release-3.92-1.i386.rpm by hand.
+  Nothing I tried updated this for some reason ...
+
+  (cat /etc/issue to check you have 3.92 not 3.91)
+
+  I had hopes 'yum upgrade' might but it did not do anything.
+---
+Good recommendations for bash scripting
+http://www3.cons.org/cracauer/bourneshell.html
+---
+Version control system
+http://bazaar.canonical.com/DownloadBzr
+---
+[root@lfs sources]# rpm -q fedora-release
+fedora-release-3.90-2
+---
+lfs:~$ cat /etc/redhat-release
+Fedora Core release Rawhide (Rawhide)
+---
+lfs:~$ gcc --print-file specs
+/adaept/lfs6/tools/bin/../lib/gcc/i686-pc-linux-gnu/3.4.3/specs
+---
+To find what group a program is in and info about a program:
+yum grouplist
+yum grouplist hidden
+yum groupinfo ruby
+yum info xscreensaver-base
+---
+     [1] See the "Bare-Bones Server HOWTO" for my recommendations
+         on how to slim down an FC3 system without sacrificing 
+         important functionality.
+         http://www.simpaticus.com/linux/
+---
+rpm -q --whatprovides /bin/vi
+vim-minimal-6.3.071-3
+rpm -q --whatprovides /usr/bin/vim
+vim-enhanced-6.3.071-3
+---
+/var/run/mysqld has the pid lock in it, with the
+rest in /var/lib/mysql - is there any more?
+
+rpm -ql mysql-server 
+should give you some information about where it has things.
+---
+cat /etc/issue to check you have version
+---
+rpm -ql kernel-devel    and be amazed!
+---
+rpm -q hotplug udev kernel
+---
+> From what I can see, /var/run/mysqld has the pid lock in it, with the
+> rest in /var/lib/mysql - is there any more?
+rpm -ql mysql-server should give you some information about where it
+has things.
+---
+> "IP Variable Missing in
+> /etc/sysconfig/network-devices/ifconfig.eth0/ipv4:Cannot continue"
+The problem is exactly what this line says. The variable IP wasn't set
+in the file /etc/sysconfig/network-devices/ifconfig.eth0/ipv4
+---
+rpm -q --whatprovides /bin/vi
+vim-minimal-6.3.071-3
+rpm -q --whatprovides /usr/bin/vim
+vim-enhanced-6.3.071-3
+---
+>> some script to create a LiveCd of the LFS?
+mkdir /mnt/lfs &&
+cd /mnt/lfs &&
+svn co svn://svn.linuxfromscratch.org/livecd/trunk lfs-livecd &&
+cd lfs-livecd &&
+make
+---
+Escape Character	 Name	 	Possible Uses
+ \n			 newline	Adding blank lines to text
+ \t			 tab		 Inserting horizontal tabs to text
+ \a			 alert		 Makes your terminal beep
+ \\			 backslash	 Inserts a backslash
+ \f			 formfeed	 Sending this to your printer ejects the page
+ [me@linuxbox me]$ echo -e "Words\tseparated\tby\thorizontal\ttabs."
+Words separated   by  horizontal  tabs
+---
+configure X from the command line
+/usr/bin/system-config-display
+---
+hint - put a "set -vx" at the top of each script, which will display 
+the commands as they run
+---
+https://www.redhat.com/archives/redhat-list/2000-January/msg02836.html
+Type "xhost +localhost" then su to root
+and all will be well. If you do this often, stick it in ~/.xinitrc to
+make it the default.
+---
+http://www.openbrick.org/en/Members/tn/thinclient/Howto%20configure%20X%20and%20VNC
+---
+useful X commands
+http://xwinman.org/basics.php
+---
+system building tips
+http://people.redhat.com/davej/hardware-problems.txt
+---
+http://www.crucialparadigm.com/resources/tutorials/server-administration/how-to-copy-files-across-a-network-internet-in-unix-linux-redhat-debian-freebsd-scp-tar-rsync-secure-network-copy.php
+Using tar and piping can also be a great way to transfer files locally to be 
+sure that file permissions are kept correctly:
+
+tar cf - /some/file | (cd /some/file; tar xf -)
+
+This may seem like a long command, but it is great for making sure all file
+permissions are kept in tact. What it is doing is streaming the files in a
+sub-shell and then untarring them in the target directory.
+---
+e.g., create tar file foo.tar, keep permissions, gzip files
+% tar cpfz foo.tar.gz /pathto/target
+---
+for bzip2
+tar cvpfj lfs6-ch5-nostripping-backup.tar.bz2 /adaept/lfs6
+---

@@ -1,0 +1,52 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+cd lfs-scripts
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+echo
+echo _________________________________________________________________________________
+echo "=>A: \${0}="${0}"    \${1}="${1}"    \${2}="${2}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> /lfs-logs/logSBU
+
+# The Build script arguments are passed in the chroot command
+# which cause this test to fail so it is commented out.
+#if [[ ${#} -eq 2 ]] ; then
+#        echo "The command line contains ${#} arguments"
+#else
+#        echo $(Usage /dev/\<xxx\> 1\|2)
+#        exit 1
+#fi
+
+echo "=> "${0}"    "${1}"    "${2}
+if [[ ${2} -ne 1 ]] && [[ ${2} -ne 2 ]] ; then
+        echo "=> The second parameter indicates 1 or 2 pass compiling."
+        echo "=> Use 1 or 2."
+        exit 1
+fi
+
+###echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+###echo =ae{ Chapter 8 Build
+###echo =ae{ The \${LFS} variable must be exported to be visible to the subshells
+###echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+###echo
+###
+###LFS=/mnt/lfs
+###export LFS
+###echo "=> \${LFS}="${LFS}
+
+echo "=> pwd="`pwd`
+echo "=> whoami="`whoami`
+echo "=> "${0}" "`exec env`
+
+# =====================================================
+./8.02.Creating_The_etc_fstab_File > /lfs-logs/8.02.Creating_The_etc_fstab_File.log 2>&1
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> /lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

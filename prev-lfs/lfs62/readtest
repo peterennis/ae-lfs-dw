@@ -1,0 +1,17 @@
+# Ref: http://www.tldp.org/LDP/abs/html/internal.html#READNOVAR
+# Read a keypress without hitting ENTER.
+
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=   
+echo =ae{ WARNING! This command will totally reset the lfs system.
+echo =ae{ The partition $1 will be reformatted and all files deleted.
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=   
+echo
+
+read -s -n3 -p "To continue type 'yes'" answer
+echo; echo "Answer was "\"${answer}\""."
+
+# -s option means do not echo input.
+# -n N option means accept only N characters of input.
+# -p option means echo the following prompt before reading input.
+
+# Using these options is tricky, since they need to be in the correct order.

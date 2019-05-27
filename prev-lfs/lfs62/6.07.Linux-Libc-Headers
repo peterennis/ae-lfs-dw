@@ -1,0 +1,63 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+cd /sources
+echo "=> pwd="`pwd`
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> /lfs-logs/logSBU
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ These commands are run as root in the chroot
+echo =ae{ The Linux-Libc-Headers package contains the """sanitized""" kernel headers.
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+# Set a variable for the package name
+PkgName=linux-libc-headers-2.6.12.0
+PkgType=bz2
+echo ${PkgName}" "${PkgType}
+
+# unpack
+if [[ "${PkgType}" == "gz" ]] ; then
+        gunzip ${PkgName}.tar.gz
+        tar -xvf ${PkgName}.tar
+elif [[ "${PkgType}" == "bz2" ]] ; then
+        bzip2 -cd ${PkgName}.tar.bz2 | tar xvf -
+fi
+
+#  Install the header files:
+cd ${PkgName}
+echo "=> pwd="`pwd`
+echo ----------8\<----------8\<----------8\<----------8\<----------8\<----------8\<----------
+echo "=> "${0}" "`exec env`
+patch -Np1 -i ../${PkgName}-inotify-3.patch
+install -dv /usr/include/asm
+cp -Rv include/asm-i386/* /usr/include/asm
+cp -Rv include/linux /usr/include
+
+#  Ensure that all the headers are owned by root:
+chown -Rv root:root /usr/include/{asm,linux}
+
+# Make sure the users can read the headers:
+find /usr/include/{asm,linux} -type d -exec chmod -v 755 {} \;
+find /usr/include/{asm,linux} -type f -exec chmod -v 644 {} \;
+echo ----------\>8----------\>8----------\>8----------\>8----------\>8----------\>8----------
+
+# Remove the extracted source files and the compile directory
+echo
+cd /sources
+echo "=> pwd="`pwd`
+rm -rf ${PkgName}
+echo "=> Removed directory "${PkgName}
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> /lfs-logs/logSBU
+echo "=>DONE "${0}
+echo

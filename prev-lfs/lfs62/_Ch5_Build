@@ -1,0 +1,165 @@
+#!/bin/bash
+# The proper way to start a bash script
+
+cd ${LFS}/lfs-scripts
+echo "=> pwd="`pwd`
+
+set -e -u -x
+source ./aeSCRIPT_LIBRARY
+trap simple_error ERR
+
+LFS=/mnt/lfs
+export LFS 
+echo "=> \$LFS="${LFS}
+
+echo
+echo _________________________________________________________________________________
+echo ${0}
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" Start $(pwd)" >> ${LFS}/lfs-logs/logSBU
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo =ae{ Chapter 5 Build
+echo =ae{ The \${LFS} variable must be exported to be visible to the subshells
+echo =ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae=ae
+echo
+
+# trap exit_status 0
+# echo "=> exit_status="$?
+# exit
+
+# http://www.fedoraforum.org/forum/archive/index.php/t-2827.html
+# http://www.tldp.net/LDP/abs/html/exit-status.html
+# if [[ ${?} -eq 0 ]] ; then		# Test exit status
+# 	echo "Exit status "${?}" = success"
+# 	echo "TESTMODE: exiting the script ..."
+# 	exit
+# else
+# 	echo "Exit status "${?}" = failure"
+# 	echo "TESTMODE: exiting the script ..."
+# 	exit
+# fi
+
+if [[ ${#} -eq 2 ]] ; then
+        echo "The command line contains $# arguments"
+else
+        echo $(Usage /dev/\<xxx\> 1\|2)
+        exit 1
+fi
+
+echo "=> "${0}"    "${1}"    "${2}
+if [[ ${2} -ne 1 ]] && [[ ${2} -ne 2 ]] ; then
+        echo "=> The second parameter indicates 1 or 2 pass compiling."
+        echo "=> Use 1 or 2."
+        exit 1
+fi
+
+if [[ ${2} -eq 1 ]] ; then
+	# Single pass compile
+	# Ref: http://www.tldp.org/LDP/abs/html/io-redirection.html
+	# ./5.02.Toolchain_Technical_Notes >> ${LFS}/lfs-logs/5.02.Toolchain_Technical_Notes.log 2>&1
+	# Ref: http://www.linuxfromscratch.org/blfs/view/svn/introduction/important.html
+	# ls -l /usr/bin | more > redirect_test.log 2>&1
+	# NOTE: Using && exit ${PIPESTATUS} does not break on script errors so do not use it
+	# http://people.cs.uchicago.edu/~bomb154/154/maclabs/bash-script-lab.html
+	# In general, there are two ways to chain commands: (1) cmd1 || cmd2 || ... || cmdn; executes until cmdi has given a nonzero return value and, (2) cmd1 && cmd2 && ... && cmdn; executes until cmdi has given a zero return value.
+	./5.02.Toolchain_Technical_Notes > ${LFS}/lfs-logs/5.02.Toolchain_Technical_Notes.log 2>&1
+	./5.03.Binutils > ${LFS}/lfs-logs/5.03.Binutils.log 2>&1
+	./5.04.GCC > ${LFS}/lfs-logs/5.04.GCC.log 2>&1
+	./5.05.Linux-Libc-Headers > ${LFS}/lfs-logs/5.05.Linux-Libc-Headers.log 2>&1
+	./5.06.Glibc > ${LFS}/lfs-logs/5.06.Glibc.log 2>&1
+	./5.07.Adjusting_The_Toolchain > ${LFS}/lfs-logs/5.07.Adjusting_The_Toolchain.log 2>&1
+	./5.08.Tcl > ${LFS}/lfs-logs/5.08.Tcl.log 2>&1
+	./5.09.Expect > ${LFS}/lfs-logs/5.09.Expect.log 2>&1
+	./5.10.DejaGNU > ${LFS}/lfs-logs/5.10.DejaGNU.log 2>&1
+	./5.11.GCC > ${LFS}/lfs-logs/5.11.GCC.log 2>&1
+	./5.12.Binutils > ${LFS}/lfs-logs/5.12.Binutils.log 2>&1
+	./5.13.Ncurses > ${LFS}/lfs-logs/5.13.Ncurses.log 2>&1
+	./5.14.Bash > ${LFS}/lfs-logs/5.14.Bash.log 2>&1
+	./5.15.Bzip2 > ${LFS}/lfs-logs/5.15.Bzip2.log 2>&1
+	./5.16.Coreutils > ${LFS}/lfs-logs/5.16.Coreutils.log 2>&1
+	./5.17.Diffutils > ${LFS}/lfs-logs/5.17.Diffutils.log 2>&1
+	./5.18.Findutils > ${LFS}/lfs-logs/5.18.Findutils.log 2>&1
+	./5.19.Gawk > ${LFS}/lfs-logs/5.19.Gawk.log 2>&1
+	./5.20.Gettext > ${LFS}/lfs-logs/5.20.Gettext.log 2>&1
+	./5.21.Grep > ${LFS}/lfs-logs/5.21.Grep.log 2>&1
+	./5.22.Gzip > ${LFS}/lfs-logs/5.22.Gzip.log 2>&1
+	./5.23.M4 > ${LFS}/lfs-logs/5.23.M4.log 2>&1
+	./5.24.Make > ${LFS}/lfs-logs/5.24.Make.log 2>&1
+	./5.25.Patch > ${LFS}/lfs-logs/5.25.Patch.log 2>&1
+	./5.26.Perl > ${LFS}/lfs-logs/5.26.Perl.log 2>&1
+	./5.27.Sed > ${LFS}/lfs-logs/5.27.Sed.log 2>&1
+	./5.28.Tar > ${LFS}/lfs-logs/5.28.Tar.log 2>&1
+	./5.29.Texinfo > ${LFS}/lfs-logs/5.29.Texinfo.log 2>&1
+	./5.30.Util-linux > ${LFS}/lfs-logs/5.30.Util-Linux.log 2>&1
+	###./5.31.Stripping > ${LFS}/lfs-logs/5.31.Stripping.log 2>&1
+	###./5.32.Changing_Ownership > ${LFS}/lfs-logs/5.32.Changing_Ownership.log 2>&1
+fi
+
+if [[ ${2} -eq 2 ]] ; then
+	# Double pass compile
+	./5.02.Toolchain_Technical_Notes
+	#./5.02.Toolchain_Technical_Notes
+	./5.03.Binutils
+	#./5.03.Binutils
+	./5.04.GCC
+	#./5.04.GCC
+	./5.05.Linux-Libc-Headers
+	#./5.05.Linux-Libc-Headers
+	./5.06.Glibc
+	#./5.06.Glibc
+	./5.07.Adjusting_The_Toolchain
+	#./5.07.Adjusting_The_Toolchain
+	./5.08.Tcl
+	./5.08.Tcl
+	./5.09.Expect
+	./5.09.Expect
+	./5.10.DejaGNU
+	./5.10.DejaGNU
+	./5.11.GCC
+	#./5.11.GCC
+	./5.12.Binutils
+	#./5.12.Binutils
+	./5.13.Ncurses
+	./5.13.Ncurses
+	./5.14.Bash
+	./5.14.Bash
+	./5.15.Bzip2
+	./5.15.Bzip2
+	./5.16.Coreutils
+	./5.16.Coreutils
+	./5.17.Diffutils
+	./5.17.Diffutils
+	./5.18.Findutils
+	./5.18.Findutils
+	./5.19.Gawk
+	./5.19.Gawk
+	./5.20.Gettext
+	./5.20.Gettext
+	./5.21.Grep
+	./5.21.Grep
+	./5.22.Gzip
+	./5.22.Gzip
+	./5.23.M4
+	./5.23.M4
+	./5.24.Make
+	./5.24.Make
+	./5.25.Patch
+	./5.25.Patch
+	./5.26.Perl
+	./5.26.Perl
+	./5.27.Sed
+	./5.27.Sed
+	./5.28.Tar
+	./5.28.Tar
+	./5.29.Texinfo
+	./5.29.Texinfo
+	./5.30.Util-linux
+	./5.30.Util-linux
+	###./5.31.Stripping
+	#./5.32.Changing_Ownership
+fi
+
+DateAndTime=$(date +%Y_%m_%d_%T)
+echo ${DateAndTime}" "${0}" End $(pwd)" >> ${LFS}/lfs-logs/logSBU
+echo "=>DONE "${0}
+echo
