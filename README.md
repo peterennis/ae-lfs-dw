@@ -1,4 +1,4 @@
-# Docker Based Linux From Scratch
+# Docker Linux From Scratch
 
 This is a docker image that makes building Linux From Scratch easy.
 
@@ -23,17 +23,17 @@ the numbering here doesn't correspond to the chapters of the book!
 2. Download source releases of GCC and the build tools, their dependencies,
 Linux kernel, C and C++ standard libraries and a bunch of system essentials, daemons and utilities that are
 needed for a working system.
-2. Build GCC and the build tools using cross-compilation to restrict the accidental linking of the host system libraries.
-3. Using these newly-build compilation tools, build a minimal system that is self-contained enough to work as a build
+3. Build GCC and the build tools using cross-compilation to restrict the accidental linking of the host system libraries.
+4. Using these newly-build compilation tools, build a minimal system that is self-contained enough to work as a build
 environment for LFS itself.
-4. Chroot to the minimal system. The Linux kernel is still the one of the host system,
+5. Chroot to the minimal system. The Linux kernel is still the one of the host system,
 but all the tools and libraries of the host system are made unavailable by the chroot.
 We do this to ensure reproducibility; both the tools we use to build the LFS system,
 and the system itself are built from source by us.
-5. Using the minimal toolset, we build and install all the programs and libraries we need to build a working Linux system.
-6. After building and installing, we configure the system.
-7. Finally, we build and install the Linux kernel, and make the system bootable.
-8. We then have a working LFS we can boot into!
+6. Using the minimal toolset, we build and install all the programs and libraries we need to build a working Linux system.
+7. After building and installing, we configure the system.
+8. Finally, we build and install the Linux kernel, and make the system bootable.
+9. We then have a working LFS we can boot into!
 
 ## What is this Docker image?
 
