@@ -13,7 +13,7 @@ the system consists of.
 
 Linux From Scratch is also a book that describes
 and teaches building such a system.
-The book is freely available here: http://www.linuxfromscratch.org/
+The book is freely available here: [Linux From Scratch](http://www.linuxfromscratch.org/)
 
 Here's a rough overview what steps building LFS consists of.
 The exact steps and requirements are described in the book. Note that
@@ -67,7 +67,7 @@ chapter5.sh are also highly recommended. They are also fully commented.**
 
 Run the following commands to build the Dockerfile and enter the host environment:
 
-```
+```PowerShell
 docker build --tag lfs .
 docker run -it --privileged lfs
 ```
@@ -80,7 +80,7 @@ The book recommends you to check the versions of the tools of the host system.
 This Docker image has the expected versions,
 but you can verify this yourself by running:
 
-```
+```PowerShell
 ./version-check.sh
 ```
 
@@ -90,11 +90,10 @@ running the `chapter2.sh` is recommended, since it finishes preparing the host s
 provided by this image. (It, among other things, prepares and mounts a virtual
 filesystem used for the LFS installation.)
 
-
-```
+```PowerShell
 ./chapter2.sh
 ```
 
 Once you have done everything through chapters 2 to 5, you are on your own;
 all that is left is to build the LFS system itself. Follow the instructions here:
-http://www.linuxfromscratch.org/lfs/view/stable/chapter06/introduction.html
+[Linux From Scratch Chapter 6](http://www.linuxfromscratch.org/lfs/view/stable/chapter06/introduction.html)
