@@ -1,3 +1,11 @@
+# Docker Linux From Scratch On Windows - a host environment for bootsrapping in Docker Desktop
+# By Peter Ennis
+# MIT licensed
+# Requirements: Minimum Docker Desktop Community Version 2.0.0.3
+#               Windows 10 1809 (64 bit)
+# 
+# Based On:
+#
 # Docked Linux From Scratch - a host environment for bootsrapping in Docker
 # By Pyry Kontio
 # MIT licensed
@@ -9,8 +17,7 @@
 # https://github.com/reinterpretcat/lfs/
 
 
-from debian:stretch
-
+FROM debian:stretch
 
 # Install the packages for the host system required to build LFS.
 # The host system requirements are listed here:
@@ -24,12 +31,13 @@ RUN apt-get update && apt-get install -y \
     wget                                 \
     sudo                                 \
     python3                              \
- && apt-get -q -y autoremove             \
- && rm -rf /var/lib/apt/lists/*
+    tofrodos                             \
+    && apt-get -q -y autoremove          \
+    && rm -rf /var/lib/apt/lists/*
 
 
 # The debian default shell points to dash,
-# but LFS supports officially bash, so reset it.
+# but LFS supports officially bash, so reset it
 
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
@@ -40,18 +48,24 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 ENV LFS /mnt/lfs
 
 
-# Create the mount point itself.
+# Create the mount point
 
 RUN mkdir -pv $LFS
 
 
-# Set a working directory to save the scripts into.
+# Set a working directory to save the scripts into
 
 WORKDIR /workdir
 
-# Copy the scripts inside the docker.
+
+# Copy the scripts inside the container
 
 COPY *.sh /workdir/
+
+
+# Convert the scripts to UNIX format
+
+RUN fromdos -d *.sh
 
 
 # Run the docker image with commands:
